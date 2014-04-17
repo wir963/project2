@@ -37,7 +37,11 @@ class GUChordMessage : public Header
       {
         PING_REQ = 1,
         PING_RSP = 2,
-        // Define extra message types when needed       
+        JOIN_REQ = 3,
+        JOIN_RSP = 4,
+        DEPARTURE_REQ = 5,
+        STABILIZE_RSP = 6,
+        STABILIZE_REQ = 7       
       };
 
     GUChordMessage (GUChordMessage::MessageType messageType, uint32_t transactionId);
@@ -104,34 +108,77 @@ class GUChordMessage : public Header
     
     struct JoinReq
     {
-        int sender_node_id;
-        int sender_node_ip_address;
+        void Print (std::ostream &os) const;
+        uint32_t GetSerializedSize (void) const;
+        void Serialize (Buffer::Iterator &start) const;
+        uint32_t Deserialize (Buffer::Iterator &start);
+        
+
+        // Payload
+        std::string joinReqMessage;
+
+        uint32_t sender_node_id;
+        Ipv4Address sender_node_ip_address;
     };
     
     struct JoinRsp
     {
-        int successor_id;
-        int successor_ip_address;
+        void Print (std::ostream &os) const;
+        uint32_t GetSerializedSize (void) const;
+        void Serialize (Buffer::Iterator &start) const;
+        uint32_t Deserialize (Buffer::Iterator &start);
+        
+        // Payload
+        std::string joinRspMessage;
+
+        uint32_t successor_node_id;
+        Ipv4Address successor_node_ip_address;
     };
     
     struct DepartureReq
     {
-        int sender_node_id;
-        int sender_node_ip_address;
-        int conn_node_id;
-        int conn_node_ip_address;
+
+        void Print (std::ostream &os) const;
+        uint32_t GetSerializedSize (void) const;
+        void Serialize (Buffer::Iterator &start) const;
+        uint32_t Deserialize (Buffer::Iterator &start);
+        
+        // Payload
+        std::string departureReqMessage;        
+
+        uint32_t sender_node_id;
+        Ipv4Address sender_node_ip_address;
+        uint32_t conn_node_id;
+        Ipv4Address conn_node_ip_address;
     };
     
     struct StabilizeReq
     {
-        int sender_node_id;
-        int sender_node_ip_address;
+        void Print (std::ostream &os) const;
+        uint32_t GetSerializedSize (void) const;
+        void Serialize (Buffer::Iterator &start) const;
+        uint32_t Deserialize (Buffer::Iterator &start);
+        
+        // Payload
+        std::string stabilizeReqMessage;        
+
+        uint32_t sender_node_id;
+        Ipv4Address sender_node_ip_address;
     };
     
     struct StabilizeRsp
     {
-        int predecessor_node_id;
-        int predecessor_node_ip_address;
+
+        void Print (std::ostream &os) const;
+        uint32_t GetSerializedSize (void) const;
+        void Serialize (Buffer::Iterator &start) const;
+        uint32_t Deserialize (Buffer::Iterator &start);
+        
+        // Payload
+        std::string stabilizeRspMessage;
+
+        uint32_t predecessor_node_id;
+        Ipv4Address predecessor_node_ip_address;
     };
 
 
@@ -140,6 +187,12 @@ class GUChordMessage : public Header
       {
         PingReq pingReq;
         PingRsp pingRsp;
+        JoinReq joinReq;
+        JoinRsp joinRsp;
+        DepartureReq departureReq;
+        StabilizeReq stabilizeReq;
+        StabilizeRsp stabilizeRsp;
+
       } m_message;
     
   public:
@@ -164,6 +217,21 @@ class GUChordMessage : public Header
      *  \param message Payload String
      */
     void SetPingRsp (std::string message);
+
+    JoinReq GetJoinReq ();
+    void SetJoinReq (std::string message);
+
+    JoinRsp GetJoinRsp ();
+    void SetJoinRsp (std::string message);
+
+    DepartureReq GetDepartureReq ();
+    void SetDepartureReq (std::string message);
+
+    StabilizeReq GetStabilizeReq ();
+    void SetStabilizeReq (std::string message);
+
+    StabilizeRsp GetStabilizeRsp ();
+    void SetStabilizeRsp (std::string message);
 
 }; // class GUChordMessage
 
