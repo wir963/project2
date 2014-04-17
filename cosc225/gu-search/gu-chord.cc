@@ -149,6 +149,21 @@ GUChord::RecvMessage (Ptr<Socket> socket)
       case GUChordMessage::PING_RSP:
         ProcessPingRsp (message, sourceAddress, sourcePort);
         break;
+      case GUChordMessage::JOIN_REQ:
+        ProcessJoinReq (message, sourceAddress, sourcePort);
+        break;
+      case GUChordMessage::JOIN_RSP:
+        ProcessJoinRsp (message, sourceAddress, sourcePort);
+        break;
+      case GUChordMessage::DEPARTURE_REQ:
+        ProcessDepartureReq (message, sourceAddress, sourcePort);
+        break;
+      case GUChordMessage::STABILIZE_REQ:
+        ProcessStabilizeReq (message, sourceAddress, sourcePort);
+        break;
+      case GUChordMessage::STABILIZE_RSP:
+        ProcessStabilizeRsp (message, sourceAddress, sourcePort);
+        break;
       default:
         ERROR_LOG ("Unknown Message Type!");
         break;
@@ -190,6 +205,49 @@ GUChord::ProcessPingRsp (GUChordMessage message, Ipv4Address sourceAddress, uint
     {
       DEBUG_LOG ("Received invalid PING_RSP!");
     }
+}
+
+void
+GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
+{
+    // will only get this if you are the landmark node
+    // need to figure out which node should be the successor for the sender/ new node
+    // how to do this???
+    // then need to send the IP Address of this node to the sender
+}
+
+void
+GUChord::ProcessJoinRsp (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
+{
+    
+    // set successor = message.getJoinRsp().successor_ip_address
+    // will successor be a member of this class?
+}
+
+void
+GUChord::ProcessDepartureReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
+{
+    // check to see if sourceAddress came from my successor or predecessor
+    // if successor, set successor = message.getDepartureReq().conn_node_ip_address
+    // if predecessor, set predecessor = message.getDepartureReq().conn_node_ip_address
+    
+}
+
+void
+GUChord::ProcessStabilizeReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
+{
+    // compare predecessor with sourceAddress
+    // if sourceAddress is > predecessor, set predecessor = sourceAddress
+    // send a ProcessStabilizeRsp message with predecessor to the sender
+    
+}
+
+void
+GUChord::ProcessStabilizeRsp (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
+{
+    // should have been sent by your successor
+    // if message.getStabilizeReq().predecessor != me, then make them your new successor
+    
 }
 
 void

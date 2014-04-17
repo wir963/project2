@@ -47,6 +47,12 @@ class GUChord : public GUApplication
     void RecvMessage (Ptr<Socket> socket);
     void ProcessPingReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
     void ProcessPingRsp (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
+    void ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
+    void ProcessJoinRsp (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
+    void ProcessDepartureReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
+    void ProcessStabilizeReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
+    void ProcessStabilizeRsp (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
+    
     void AuditPings ();
     uint32_t GetNextTransactionId ();
     void StopChord ();
