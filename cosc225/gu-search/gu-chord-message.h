@@ -101,6 +101,38 @@ class GUChordMessage : public Header
         // Payload
         std::string pingMessage;
       };
+    
+    struct JoinReq
+    {
+        int sender_node_id;
+        int sender_node_ip_address;
+    };
+    
+    struct JoinRsp
+    {
+        int successor_id;
+        int successor_ip_address;
+    };
+    
+    struct DepartureReq
+    {
+        int sender_node_id;
+        int sender_node_ip_address;
+        int conn_node_id;
+        int conn_node_ip_address;
+    };
+    
+    struct StabilizeReq
+    {
+        int sender_node_id;
+        int sender_node_ip_address;
+    };
+    
+    struct StabilizeRsp
+    {
+        int predecessor_node_id;
+        int predecessor_node_ip_address;
+    };
 
 
   private:
