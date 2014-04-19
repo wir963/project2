@@ -206,7 +206,7 @@ GUChord::RunStabilize ()
     resp.SetStabilizeReq (my_id, my_ip);
     Ptr<Packet> packet = Create<Packet> ();
     packet->AddHeader (resp);
-    m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, inetSocketAddr.GetPort ()));
+    m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, m_appPort));
 }
 
 void
