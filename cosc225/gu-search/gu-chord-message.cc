@@ -581,7 +581,7 @@ GUChordMessage::StabilizeRsp::GetSerializedSize (void) const
 void
 GUChordMessage::StabilizeRsp::Print (std::ostream &os) const
 {
-  os << "StabilizeRsp:: Message: " << stabilizeRspMessage << "\n";
+  //os << "StabilizeRsp:: Message: " << stabilizeRspMessage << "\n";
 }
 
 void
