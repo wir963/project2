@@ -385,8 +385,8 @@ GUChord::ProcessStabilizeReq (GUChordMessage message, Ipv4Address sourceAddress,
 
     if (sender_id > predecessor_id)// or if don't have predecessor yet?
     {
-        predecessor_node_id = sender_id;
-        predecessor_node_ip_address = sourceAddress;
+        predecessor_id = sender_id;
+        predecessor_ip_address = sourceAddress;
     }
     // send a ProcessStabilizeRsp message with predecessor to the sender
     GUChordMessage resp = GUChordMessage (GUChordMessage::STABILIZE_RSP, message.GetTransactionId());
