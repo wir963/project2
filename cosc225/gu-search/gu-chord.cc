@@ -121,7 +121,12 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
 
           Ptr<Packet> packet = Create<Packet> ();
           GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::JOIN_REQ, transactionId );
-          //guChordMessage.SetPingReq (destAddress, pingMessage);
+                
+          Ipv4Address my_ip = GetLocalAddress();
+          uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
+          uint32_t recipient_id = atoi(nodeNumber.c_str());
+
+          guChordMessage.SetJoinReq (my_id, my_ip, recipient_id, destAddress);
           packet->AddHeader (guChordMessage);
           m_socket->SendTo (packet, 0 , InetSocketAddress (destAddress, m_appPort));
         
