@@ -234,7 +234,7 @@ class GUChordMessage : public Header
     void SetStabilizeReq ();
 
     StabilizeRsp GetStabilizeRsp ();
-    void SetStabilizeRsp ();
+    void SetStabilizeRsp (uint32_t, Ipv4Address);
 
 }; // class GUChordMessage
 

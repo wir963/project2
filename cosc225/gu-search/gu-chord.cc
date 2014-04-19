@@ -382,13 +382,17 @@ GUChord::ProcessStabilizeReq (GUChordMessage message, Ipv4Address sourceAddress,
     // only nodes that think you are their successor will send you these messages
     uint32_t sender_id = atoi(ReverseLookup(sourceAddress).c_str());
     // compare predecessor with sourceAddress
-    if ()
+    if (sender_id > predecessor_id)
     {
-        
+        predecessor_id = sender_id;
+        predecessor_ip_address = sourceAddress;
     }
-    // if sourceAddress is > predecessor, set predecessor = sourceAddress
     // send a ProcessStabilizeRsp message with predecessor to the sender
-    
+    GUChordMessage resp = GUChordMessage (GUChordMessage::STABILIZE_RSP, message.GetTransactionId());
+    resp.SetStabilizeRsp (predecessor_id, predecessor_ip_address);
+    Ptr<Packet> packet = Create<Packet> ();
+    packet->AddHeader (resp);
+    m_socket->SendTo (packet, 0 , InetSocketAddress (sourceAddress, sourcePort));
 }
 
 void
