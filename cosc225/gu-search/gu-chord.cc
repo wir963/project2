@@ -207,7 +207,7 @@ GUChord::RunStabilize ()
     uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
     GUChordMessage resp = GUChordMessage (GUChordMessage::STABILIZE_REQ, GetNextTransactionId ());
     resp.SetStabilizeReq (my_id, my_ip);
-       // std::cout << my_id << " is running stabilize" << std::endl;
+        //std::cout << my_id << " is running stabilize" << std::endl;
     Ptr<Packet> packet = Create<Packet> ();
     packet->AddHeader (resp);
     m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, m_appPort));
@@ -335,15 +335,17 @@ GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint
     uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
     if (my_id < request_node_id && request_node_id < successor_id)
     {
+        std::cout << "case 1" << std::endl;        
         SendJoinRsp(message, sourcePort);
     }
     else if (request_node_id > my_id && my_id > successor_id)
     {
-        std::cout<<"stuck here" << std::endl;
+        std::cout<<"case 2" << std::endl;
         SendJoinRsp(message, sourcePort);
     }
     else if (successor_id == my_id)
     {
+        std::cout << "case 3" << successor_id << my_id << " " << successor_ip_address << std::endl;
         GUChordMessage resp = GUChordMessage (GUChordMessage::JOIN_RSP, message.GetTransactionId());
         resp.SetJoinRsp (message.GetJoinReq(), successor_id, successor_ip_address);
         Ptr<Packet> packet = Create<Packet> ();
@@ -439,7 +441,7 @@ GUChord::ProcessStabilizeReq (GUChordMessage message, Ipv4Address sourceAddress,
     uint32_t sender_id = atoi(ReverseLookup(sourceAddress).c_str());
     // if sourceAddress is > predecessor, set predecessor = sourceAddress
     // think about the edge case here
-    if (sender_id > predecessor_id)// or if don't have predecessor yet?
+    if (sender_id >= predecessor_id)// or if don't have predecessor yet?
     {
         predecessor_id = sender_id;
         predecessor_ip_address = sourceAddress;
