@@ -355,6 +355,27 @@ GUChordMessage::SetJoinReq (JoinReq joinRequest)
   m_message.joinReq = joinRequest;
 }
 
+void
+GUChordMessage::SetJoinReq (uint32_t sender_node_number, Ipv4Address sender_ip_address, uint32_t receiving_node_number, Ipv4Address receiving_ip_address)
+{
+
+        if (m_messageType == 0)
+            {
+              m_messageType = JOIN_REQ;
+            }
+          else
+            {
+              NS_ASSERT (m_messageType == JOIN_REQ);
+            }
+          
+        m_message.joinReq.request_id = sender_node_number;
+        m_message.joinReq.request_ip_address = sender_ip_address;
+        m_message.joinReq.landmark_id = receiving_node_number;
+        m_message.joinReq.landmark_ip_address = receiving_ip_address;
+
+}
+          
+
 GUChordMessage::JoinReq
 GUChordMessage::GetJoinReq ()
 {
