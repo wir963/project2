@@ -246,7 +246,7 @@ class GUChordMessage : public Header
     void SetDepartureReq ();
 
     StabilizeReq GetStabilizeReq ();
-    void SetStabilizeReq ();
+    void SetStabilizeReq (uint32_t, Ipv4Address);
 
     StabilizeRsp GetStabilizeRsp ();
     void SetStabilizeRsp (uint32_t, Ipv4Address);

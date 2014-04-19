@@ -43,6 +43,7 @@ class GUChord : public GUApplication
     GUChord ();
     virtual ~GUChord ();
 
+    void RunStabilize ();
     void SendPing (Ipv4Address destAddress, std::string pingMessage);
     void RecvMessage (Ptr<Socket> socket);
     void ProcessPingReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
@@ -93,6 +94,7 @@ class GUChord : public GUApplication
     uint32_t predecessor_id;
     Ipv4Address successor_ip_address;
     Ipv4Address predecessor_ip_address;
+    Timer stabilize_timer;
 };
 
 #endif

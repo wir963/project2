@@ -81,6 +81,8 @@ GUChord::StartApplication (void)
   m_auditPingsTimer.SetFunction (&GUChord::AuditPings, this);
   // Start timers
   m_auditPingsTimer.Schedule (m_pingTimeout);
+    stabilize_timer.Schedule(MilliSeconds (2000));
+    stabilize_timer.SetFunction (&GUChord::RunStabilize, this);
 }
 
 void
@@ -96,6 +98,7 @@ GUChord::StopApplication (void)
 
   // Cancel timers
   m_auditPingsTimer.Cancel ();
+    stabilize_timer.Cancel();
 
   m_pingTracker.clear ();
 }
@@ -191,6 +194,19 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
           m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, m_appPort));
 
     }
+}
+
+void
+GUChord::RunStabilize ()
+{
+    // send stabilize to your successor
+    Ipv4Address my_ip = GetLocalAddress();
+    uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
+    GUChordMessage resp = GUChordMessage (GUChordMessage::STABILIZE_REQ, GetNextTransactionId ());
+    resp.SetStabilizeReq (my_id, my_ip);
+    Ptr<Packet> packet = Create<Packet> ();
+    packet->AddHeader (resp);
+    m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, m_appPort));
 }
 
 void
@@ -297,7 +313,7 @@ void
 GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
 {
 
-std::cout << "received " << message.GetMessageType() << " message at node " << message.GetJoinReq ().landmark_id << std::endl;
+    std::cout << "received " << message.GetMessageType() << " message at node " << message.GetJoinReq ().landmark_id << std::endl;
     // will only get this if you are the landmark node
     // need to figure out which node should be the successor for the sender/ new node
     
@@ -414,7 +430,7 @@ GUChord::ProcessStabilizeReq (GUChordMessage message, Ipv4Address sourceAddress,
     // only nodes that think you are their successor will send you these messages
     uint32_t sender_id = atoi(ReverseLookup(sourceAddress).c_str());
     // if sourceAddress is > predecessor, set predecessor = sourceAddress
-
+    // think about the edge case here
     if (sender_id > predecessor_id)// or if don't have predecessor yet?
     {
         predecessor_id = sender_id;
