@@ -249,15 +249,15 @@ std::cout << "received " << message.GetMessageType() << " message at node" << me
     uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
     if (my_id < request_node_id && request_node_id < successor_id)
     {
-        SendJoinRsp(message, uint16_t sourcePort);
+        SendJoinRsp(message, sourcePort);
     }
     else if (request_node_id > my_id && my_id > successor_id)
     {
-        SendJoinRsp(message, uint16_t sourcePort);
+        SendJoinRsp(message, sourcePort);
     }
     else if (successor_id == my_id)
     {
-        SendJoinRsp(message, uint16_t sourcePort);
+        SendJoinRsp(message, sourcePort);
     }
     else
     {
