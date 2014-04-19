@@ -380,12 +380,12 @@ void
 GUChord::ProcessStabilizeReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
 {
     // only nodes that think you are their successor will send you these messages
-    uint32_t sender_id = atoi(ReverseLookup(sourceAddress).c_str());
+    //uint32_t sender_id = atoi(ReverseLookup(sourceAddress).c_str());
     // compare predecessor with sourceAddress
-    if ()
-    {
+    //if ()
+    //{
         
-    }
+    //}
     // if sourceAddress is > predecessor, set predecessor = sourceAddress
     // send a ProcessStabilizeRsp message with predecessor to the sender
     
