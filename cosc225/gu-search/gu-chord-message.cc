@@ -327,14 +327,14 @@ void
 GUChordMessage::JoinReq::Serialize (Buffer::Iterator &start) const
 {
   start.WriteU32 (landmark_id);
-  start.WriteHtonU32(landmark_ip_address);
+  start.WriteHtonU32(landmark_ip_address.Get());
   start.WriteU32 (request_id);
-  start.WriteHtonU32(request_ip_address);
+  start.WriteHtonU32(request_ip_address.Get());
 }
 
 uint32_t
 GUChordMessage::JoinReq::Deserialize (Buffer::Iterator &start)
-{  
+{
   landmark_id = start.ReadU32();
   landmark_ip_address = Ipv4Address (start.ReadNtohU32 ());
   request_id = start.ReadU32();
