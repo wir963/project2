@@ -107,7 +107,7 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
   std::string command = *iterator;
   // let's print out the command
     std::cout << "In Process Command" << std::endl;
-    std::cout << "The command is " << command << endl;
+    std::cout << "The command is " << command << std::endl;
 }
 
 void
@@ -215,7 +215,7 @@ GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint
 {
     // landmark_node is the node that received the original message
     // request_node is the node that asked to join the network
-    uint32_t request_node_id = message.GetJoinReq().request_node_id;
+    /*uint32_t request_node_id = message.GetJoinReq().request_node_id;
     Ipv4Address my_ip = GetLocalAddress();
     // check to see if m_mainAddress exists?
     uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
@@ -244,7 +244,7 @@ GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint
         Ptr<Packet> packet = Create<Packet> ();
         packet->AddHeader (resp);
         m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, sourcePort));
-    }
+    }*/
 }
 
 void
