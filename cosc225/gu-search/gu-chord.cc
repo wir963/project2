@@ -106,8 +106,30 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
   std::vector<std::string>::iterator iterator = tokens.begin();
   std::string command = *iterator;
   // let's print out the command
-    std::cout << "In Process Command" << std::endl;
-    std::cout << "The command is " << command << std::endl;
+  std::cout << "In Process Command" << std::endl;
+  std::cout << "The command is " << command << std::endl;
+
+  if (command == "join" || command == "JOIN")
+    {
+          iterator++;
+          std::istringstream sin (*iterator);
+          std::string nodeNumber;
+          sin >> nodeNumber;
+          //std::cout << nodeNumber << std::endl;
+          Ipv4Address destAddress = ResolveNodeIpAddress (nodeNumber);
+          uint32_t transactionId = GetNextTransactionId ();
+
+          Ptr<Packet> packet = Create<Packet> ();
+          GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::JOIN_REQ, transactionId );
+          //guChordMessage.SetPingReq (destAddress, pingMessage);
+          packet->AddHeader (guChordMessage);
+          m_socket->SendTo (packet, 0 , InetSocketAddress (destAddress, m_appPort));
+        
+    }
+  else if (command == "leave")
+    {
+      
+    }
 }
 
 void
@@ -186,7 +208,7 @@ GUChord::ProcessPingReq (GUChordMessage message, Ipv4Address sourceAddress, uint
     Ptr<Packet> packet = Create<Packet> ();
     packet->AddHeader (resp);
     m_socket->SendTo (packet, 0 , InetSocketAddress (sourceAddress, sourcePort));
-    // Send indication to application layer
+    // Send indication to application layer okay
     m_pingRecvFn (sourceAddress, message.GetPingReq().pingMessage);
 }
 
@@ -213,6 +235,12 @@ GUChord::ProcessPingRsp (GUChordMessage message, Ipv4Address sourceAddress, uint
 void
 GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
 {
+
+std::cout << "received " << message.GetMessageType() << " message at node" << message.GetJoinReq ().request_ip_address << std::endl;
+    // will only get this if you are the landmark node
+    // need to figure out which node should be the successor for the sender/ new node
+    
+    // then need to send the IP Address of this node to the sender
     // landmark_node is the node that received the original message
     // request_node is the node that asked to join the network
     uint32_t request_node_id = message.GetJoinReq().request_id;
@@ -221,20 +249,15 @@ GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint
     uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
     if (my_id < request_node_id && request_node_id < successor_id)
     {
-        // found the successor, which is successor_id
-        GUChordMessage resp = GUChordMessage (GUChordMessage::JOIN_RSP, message.GetTransactionId());
-        //resp.SetJoinRsp (message.GetJoinReq());
-        Ptr<Packet> packet = Create<Packet> ();
-        packet->AddHeader (resp);
-        m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, sourcePort));
+        SendJoinRsp(message, sourcePort);
     }
     else if (request_node_id > my_id && my_id > successor_id)
     {
-        // found the successor, which is successor_id
+        SendJoinRsp(message, sourcePort);
     }
     else if (successor_id == my_id)
     {
-        // found the successor, which is successor_id
+        SendJoinRsp(message, sourcePort);
     }
     else
     {
@@ -248,9 +271,48 @@ GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint
 }
 
 void
+GUChord::SendJoinRsp(GUChordMessage message, uint16_t sourcePort)
+{
+    GUChordMessage resp = GUChordMessage (GUChordMessage::JOIN_RSP, message.GetTransactionId());
+    resp.SetJoinRsp (message.GetJoinReq(), successor_id, successor_ip_address);
+    Ptr<Packet> packet = Create<Packet> ();
+    packet->AddHeader (resp);
+    m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, sourcePort));
+}
+
+void
 GUChord::ProcessJoinRsp (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
 {
+    Ipv4Address my_ip = GetLocalAddress();
+    // check to see if m_mainAddress exists?
+    uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
+    // if you are the landmark node, then send this information to the request node
+    if (my_id == message.getJoinRsp.landmark_id)
+    {
+        GUChordMessage resp = GUChordMessage (GUChordMessage::JOIN_RSP, message.GetTransactionId());
+        resp.SetJoinRsp (message.GetJoinRsp());
+        Ptr<Packet> packet = Create<Packet> ();
+        packet->AddHeader (resp);
+        m_socket->SendTo (packet, 0 , InetSocketAddress (message.getJoinRsp().request_ip_address, sourcePort));
+    }
+    // if you are the original requester
+    else if (my_id == message.getJoinRsp.request_id)
+    {
+        successor_ip_address = message.getJoinRsp().successor_ip_address;
+        successor_id = message.getJoinRsp().successor_id;
+        // joined the tree!
+    }
+    else
+    {
+        // forward the message
+        GUChordMessage resp = GUChordMessage (GUChordMessage::JOIN_RSP, message.GetTransactionId());
+        resp.SetJoinRsp (message.GetJoinRsp());
+        Ptr<Packet> packet = Create<Packet> ();
+        packet->AddHeader (resp);
+        m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, sourcePort));
+    }
     
+    // otherwise, forward it along to your successor
     // set successor = message.getJoinRsp().successor_ip_address
     // will successor be a member of this class?
 }

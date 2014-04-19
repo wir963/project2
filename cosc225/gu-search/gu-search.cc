@@ -137,6 +137,7 @@ GUSearch::ProcessCommand (std::vector<std::string> tokens)
 {
   std::vector<std::string>::iterator iterator = tokens.begin();
   std::string command = *iterator;
+
   if (command == "CHORD")
     { 
       // Send to Chord Sub-Layer
