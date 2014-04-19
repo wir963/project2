@@ -116,9 +116,9 @@ class GUChordMessage : public Header
 
         // Payload
         std::string joinReqMessage;
-
-        uint32_t sender_node_id;
-        Ipv4Address sender_node_ip_address;
+        uint32_t landmark_node;
+        uint32_t request_node_id;
+        Ipv4Address request_node_ip_address;
     };
     
     struct JoinRsp
