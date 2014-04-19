@@ -409,6 +409,25 @@ GUChordMessage::SetJoinRsp (JoinRsp joinResponse)
   m_message.joinRsp = joinResponse;
 }
 
+void
+GUChordMessage::SetJoinRsp (JoinReq joinRequest, uint32_t succ_id, Ipv4Address succ_ip)
+{
+    if (m_messageType == 0)
+    {
+        m_messageType = JOIN_RSP;
+    }
+    else
+    {
+        NS_ASSERT (m_messageType == JOIN_RSP);
+    }
+    m_message.joinRsp.sucessor_ip_address = succ_ip;
+    m_message.joinRsp.successor_id = succ_id;
+    m_message.joinRsp.request_id = joinRequest.request_id;
+    m_message.joinRsp.request_ip_address = joinRequest.request_ip_address;
+    m_message.joinRsp.landmark_id = joinRequest.landmark_id;
+    m_message.joinRsp.landmark_ip_address = joinRequest.landmark_ip_address;
+}
+
 GUChordMessage::JoinRsp
 GUChordMessage::GetJoinRsp ()
 {
