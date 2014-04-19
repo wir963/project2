@@ -81,9 +81,10 @@ GUChord::StartApplication (void)
   m_auditPingsTimer.SetFunction (&GUChord::AuditPings, this);
   // Start timers
   m_auditPingsTimer.Schedule (m_pingTimeout);
-    stabilize_timeout = MilliSeconds (20);
+    stabilize_timeout = MilliSeconds (2000);
     stabilize_timer.SetFunction (&GUChord::RunStabilize, this);
     stabilize_timer.Schedule(stabilize_timeout);
+
 }
 
 void
@@ -201,13 +202,17 @@ void
 GUChord::RunStabilize ()
 {
     // send stabilize to your successor
+
     Ipv4Address my_ip = GetLocalAddress();
     uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
     GUChordMessage resp = GUChordMessage (GUChordMessage::STABILIZE_REQ, GetNextTransactionId ());
     resp.SetStabilizeReq (my_id, my_ip);
+       // std::cout << my_id << " is running stabilize" << std::endl;
     Ptr<Packet> packet = Create<Packet> ();
     packet->AddHeader (resp);
     m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, m_appPort));
+
+stabilize_timer.Schedule(stabilize_timeout);
 }
 
 void
@@ -266,6 +271,9 @@ GUChord::RecvMessage (Ptr<Socket> socket)
         break;
       case GUChordMessage::STABILIZE_RSP:
         ProcessStabilizeRsp (message, sourceAddress, sourcePort);
+        break;
+      case GUChordMessage::RING_STATE_PING:
+        ProcessRingStatePing (message, sourceAddress, sourcePort);
         break;
       default:
         ERROR_LOG ("Unknown Message Type!");
@@ -351,6 +359,8 @@ GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint
         packet->AddHeader (resp);
         m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, sourcePort));
     }
+
+//RunStabilize();
 }
 
 void
@@ -398,6 +408,8 @@ GUChord::ProcessJoinRsp (GUChordMessage message, Ipv4Address sourceAddress, uint
     // otherwise, forward it along to your successor
     // set successor = message.getJoinRsp().successor_ip_address
     // will successor be a member of this class?
+
+//RunStabilize();
 }
 
 void
@@ -465,11 +477,11 @@ GUChord::ProcessRingStatePing (GUChordMessage message, Ipv4Address sourceAddress
         uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
         uint32_t transactionId = GetNextTransactionId ();
 
-        if (my_id != message.GetRingStatePing ().originator_node_id) {
-
        /* CHORD_LOG ("RingState<" << my_id << ">: Pred<" << predecessor_id << ", " << predecessor_ip_address << ">, Succ<" << successor_id << ", " << successor_ip_address << ">");*/
 
        std::cout << "RingState<" << my_id << ">: Pred<" << predecessor_id << ", " << predecessor_ip_address << ">, Succ<" << successor_id << ", " << successor_ip_address << ">" << std::endl;
+
+if (my_id != message.GetRingStatePing ().originator_node_id) {
 
           Ptr<Packet> packet = Create<Packet> ();
           GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::RING_STATE_PING, transactionId );

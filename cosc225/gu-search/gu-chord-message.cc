@@ -675,11 +675,11 @@ GUChordMessage::SetRingStatePing (uint32_t originator_id, Ipv4Address originator
 {
   if (m_messageType == 0)
     {
-      m_messageType = STABILIZE_RSP;
+      m_messageType = RING_STATE_PING;
     }
   else
     {
-      NS_ASSERT (m_messageType == STABILIZE_RSP);
+      NS_ASSERT (m_messageType == RING_STATE_PING);
     }
   
   m_message.ringStatePing.originator_node_id = originator_id;
