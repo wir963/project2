@@ -382,13 +382,17 @@ GUChord::ProcessStabilizeReq (GUChordMessage message, Ipv4Address sourceAddress,
     // only nodes that think you are their successor will send you these messages
     //uint32_t sender_id = atoi(ReverseLookup(sourceAddress).c_str());
     // compare predecessor with sourceAddress
-    //if ()
-    //{
-        
-    //}
-    // if sourceAddress is > predecessor, set predecessor = sourceAddress
+    if (sender_id > predecessor_id)// or if don't have predecessor yet?
+    {
+        predecessor_id = sender_id;
+        predecessor_ip_address = sourceAddress;
+    }
     // send a ProcessStabilizeRsp message with predecessor to the sender
-    
+    GUChordMessage resp = GUChordMessage (GUChordMessage::STABILIZE_RSP, message.GetTransactionId());
+    resp.SetStabilizeRsp (predecessor_id, predecessor_ip_address);
+    Ptr<Packet> packet = Create<Packet> ();
+    packet->AddHeader (resp);
+    m_socket->SendTo (packet, 0 , InetSocketAddress (sourceAddress, sourcePort));
 }
 
 void
@@ -396,6 +400,14 @@ GUChord::ProcessStabilizeRsp (GUChordMessage message, Ipv4Address sourceAddress,
 {
     // should have been sent by your successor
     // if message.getStabilizeReq().predecessor != me, then make them your new successor
+    Ipv4Address my_ip = GetLocalAddress();
+    // check to see if m_mainAddress exists?
+    uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
+    uint32_t node_id = message.GetStabilizeRsp().predecessor_id;
+    if (node_id != my_id) {
+        successor_id = node_id;
+        successor_ip_address = message.GetStabilizeRsp().predecessor_ip_address;
+    }
     
 }
 
