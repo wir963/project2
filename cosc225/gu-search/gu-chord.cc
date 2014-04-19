@@ -239,7 +239,7 @@ GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint
 std::cout << "received " << message.GetMessageType() << " message at node" << message.GetJoinReq ().request_ip_address << std::endl;
     // will only get this if you are the landmark node
     // need to figure out which node should be the successor for the sender/ new node
-    // 
+    
     // then need to send the IP Address of this node to the sender
     // landmark_node is the node that received the original message
     // request_node is the node that asked to join the network
@@ -283,7 +283,36 @@ GUChord::SendJoinRsp(GUChordMessage message, uint16_t sourcePort)
 void
 GUChord::ProcessJoinRsp (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
 {
+    Ipv4Address my_ip = GetLocalAddress();
+    // check to see if m_mainAddress exists?
+    uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
+    // if you are the landmark node, then send this information to the request node
+    if (my_id == message.getJoinRsp.landmark_id)
+    {
+        GUChordMessage resp = GUChordMessage (GUChordMessage::JOIN_RSP, message.GetTransactionId());
+        resp.SetJoinRsp (message.GetJoinRsp());
+        Ptr<Packet> packet = Create<Packet> ();
+        packet->AddHeader (resp);
+        m_socket->SendTo (packet, 0 , InetSocketAddress (message.getJoinRsp().request_ip_address, sourcePort));
+    }
+    // if you are the original requester
+    else if (my_id == message.getJoinRsp.request_id)
+    {
+        successor_ip_address = message.getJoinRsp().successor_ip_address;
+        successor_id = message.getJoinRsp().successor_id;
+        // joined the tree!
+    }
+    else
+    {
+        // forward the message
+        GUChordMessage resp = GUChordMessage (GUChordMessage::JOIN_RSP, message.GetTransactionId());
+        resp.SetJoinRsp (message.GetJoinRsp());
+        Ptr<Packet> packet = Create<Packet> ();
+        packet->AddHeader (resp);
+        m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, sourcePort));
+    }
     
+    // otherwise, forward it along to your successor
     // set successor = message.getJoinRsp().successor_ip_address
     // will successor be a member of this class?
 }
