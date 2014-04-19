@@ -176,6 +176,24 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
 
 
     }
+
+    else if (command == "ringstate" || command == "RINGSTATE")
+    {
+        
+          //Ipv4Address destAddress = ResolveNodeIpAddress (nodeNumber);
+          uint32_t transactionId = GetNextTransactionId ();
+          Ipv4Address my_ip = GetLocalAddress();
+          uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
+          //uint32_t recipient_id = atoi(nodeNumber.c_str());
+
+          Ptr<Packet> packet = Create<Packet> ();
+          GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::RING_STATE_PING, transactionId );
+
+          guChordMessage.SetRingStatePing (my_id, my_ip);
+          packet->AddHeader (guChordMessage);
+          m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, m_appPort));
+
+    }
 }
 
 void
@@ -425,6 +443,34 @@ GUChord::ProcessStabilizeRsp (GUChordMessage message, Ipv4Address sourceAddress,
         successor_id = node_id;
         successor_ip_address = message.GetStabilizeRsp().predecessor_node_ip_address;
     }
+    
+}
+
+void
+GUChord::ProcessRingStatePing (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
+{
+    std::cout << "received " << message.GetMessageType() << " message from originating node " << message.GetRingStatePing ().originator_node_id << std::endl;
+
+        Ipv4Address my_ip = GetLocalAddress();
+        uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
+        uint32_t transactionId = GetNextTransactionId ();
+
+        if (my_id != message.GetRingStatePing ().originator_node_id) {
+
+       /* CHORD_LOG ("RingState<" << my_id << ">: Pred<" << predecessor_id << ", " << predecessor_ip_address << ">, Succ<" << successor_id << ", " << successor_ip_address << ">");*/
+
+       std::cout << "RingState<" << my_id << ">: Pred<" << predecessor_id << ", " << predecessor_ip_address << ">, Succ<" << successor_id << ", " << successor_ip_address << ">" << std::endl;
+
+          Ptr<Packet> packet = Create<Packet> ();
+          GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::RING_STATE_PING, transactionId );
+
+          guChordMessage.SetRingStatePing (message.GetRingStatePing ().originator_node_id, message.GetRingStatePing ().originator_node_ip_address);
+          packet->AddHeader (guChordMessage);
+          m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, m_appPort));
+
+        }
+
+
     
 }
 

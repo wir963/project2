@@ -81,6 +81,9 @@ GUChordMessage::GetSerializedSize (void) const
       case STABILIZE_RSP:
         size += m_message.stabilizeRsp.GetSerializedSize ();
         break;
+      case RING_STATE_PING:
+        size += m_message.ringStatePing.GetSerializedSize ();
+        break;
       default:
         NS_ASSERT (false);
     }
@@ -118,6 +121,9 @@ GUChordMessage::Print (std::ostream &os) const
       case STABILIZE_RSP:
         m_message.stabilizeRsp.Print (os);
         break;
+      case RING_STATE_PING:
+        m_message.ringStatePing.Print (os);
+        break;
       default:
         break;  
     }
@@ -153,6 +159,9 @@ GUChordMessage::Serialize (Buffer::Iterator start) const
         break;
       case STABILIZE_RSP:
         m_message.stabilizeRsp.Serialize (i);
+        break;
+      case RING_STATE_PING:
+        m_message.ringStatePing.Serialize (i);
         break;
       default:
         NS_ASSERT (false);   
@@ -191,6 +200,9 @@ GUChordMessage::Deserialize (Buffer::Iterator start)
         break;
       case STABILIZE_RSP:
         size += m_message.stabilizeRsp.Deserialize (i);
+        break;
+      case RING_STATE_PING:
+        size += m_message.ringStatePing.Deserialize (i);
         break;
       default:
         NS_ASSERT (false);
@@ -497,20 +509,6 @@ GUChordMessage::DepartureReq::Deserialize (Buffer::Iterator &start)
 }
 
 void
-GUChordMessage::SetDepartureReq ()
-{
-  if (m_messageType == 0)
-    {
-      m_messageType = DEPARTURE_REQ;
-    }
-  else
-    {
-      NS_ASSERT (m_messageType == DEPARTURE_REQ);
-    }
-  //m_message.departureReq.departureReqMessage = departureReqMessage;
-}
-
-void
 GUChordMessage::SetDepartureReq (uint32_t sender_node_number, Ipv4Address sender_ip_address, uint32_t conn_node_number, Ipv4Address conn_ip_address)
 {
 
@@ -639,6 +637,61 @@ GUChordMessage::StabilizeRsp
 GUChordMessage::GetStabilizeRsp ()
 {
   return m_message.stabilizeRsp;
+}
+
+/* RING_STATE_PING */
+
+uint32_t 
+GUChordMessage::RingStatePing::GetSerializedSize (void) const
+{
+    uint32_t size;
+    size = IPV4_ADDRESS_SIZE + sizeof(uint32_t);
+    return size;
+}
+
+void
+GUChordMessage::RingStatePing::Print (std::ostream &os) const
+{
+  //os << "StabilizeRsp:: Message: " << stabilizeRspMessage << "\n";
+}
+
+void
+GUChordMessage::RingStatePing::Serialize (Buffer::Iterator &start) const
+{
+    start.WriteU32 (originator_node_id);
+    start.WriteHtonU32(originator_node_ip_address.Get());
+}
+
+uint32_t
+GUChordMessage::RingStatePing::Deserialize (Buffer::Iterator &start)
+{  
+  originator_node_id = start.ReadU32();
+  originator_node_ip_address = Ipv4Address (start.ReadNtohU32 ());
+  return RingStatePing::GetSerializedSize ();
+}
+
+void
+GUChordMessage::SetRingStatePing (uint32_t originator_id, Ipv4Address originator_ip)
+{
+  if (m_messageType == 0)
+    {
+      m_messageType = STABILIZE_RSP;
+    }
+  else
+    {
+      NS_ASSERT (m_messageType == STABILIZE_RSP);
+    }
+  
+  m_message.ringStatePing.originator_node_id = originator_id;
+  m_message.ringStatePing.originator_node_ip_address = originator_ip;
+
+}
+
+
+GUChordMessage::RingStatePing
+GUChordMessage::GetRingStatePing ()
+{
+  return m_message.ringStatePing;
 }
 
 //

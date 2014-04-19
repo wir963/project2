@@ -54,6 +54,7 @@ class GUChord : public GUApplication
     void ProcessDepartureReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
     void ProcessStabilizeReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
     void ProcessStabilizeRsp (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
+    void ProcessRingStatePing (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
     
     void AuditPings ();
     uint32_t GetNextTransactionId ();
