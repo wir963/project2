@@ -115,7 +115,7 @@ class GUChordMessage : public Header
 
         // Payload
         std::string joinReqMessage;
-        uint32_t landmark_node;
+        uint32_t landmark_id;
         Ipv4Address landmark_ip_address;
         uint32_t request_id;
         Ipv4Address request_ip_address;
