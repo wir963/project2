@@ -313,31 +313,32 @@ uint32_t
 GUChordMessage::JoinReq::GetSerializedSize (void) const
 {
   uint32_t size;
-  size = sizeof(uint16_t) + joinReqMessage.length();
+  size = 2*IPV4_ADDRESS_SIZE + 2*sizeof(uint32_t);
   return size;
 }
 
 void
 GUChordMessage::JoinReq::Print (std::ostream &os) const
 {
-  os << "JoinReq:: Message: " << joinReqMessage << "\n";
+  //os << "JoinReq:: Message: " << joinReqMessage << "\n";
 }
 
 void
 GUChordMessage::JoinReq::Serialize (Buffer::Iterator &start) const
 {
-  start.WriteU16 (joinReqMessage.length ());
-  start.Write ((uint8_t *) (const_cast<char*> (joinReqMessage.c_str())), joinReqMessage.length());
+  start.WriteU32 (landmark_id);
+  start.WriteHtonU32(landmark_ip_address.Get());
+  start.WriteU32 (request_id);
+  start.WriteHtonU32(request_ip_address.Get());
 }
 
 uint32_t
 GUChordMessage::JoinReq::Deserialize (Buffer::Iterator &start)
-{  
-  uint16_t length = start.ReadU16 ();
-  char* str = (char*) malloc (length);
-  start.Read ((uint8_t*)str, length);
-  joinReqMessage = std::string (str, length);
-  free (str);
+{
+  landmark_id = start.ReadU32();
+  landmark_ip_address = Ipv4Address (start.ReadNtohU32 ());
+  request_id = start.ReadU32();
+  request_ip_address = Ipv4Address (start.ReadNtohU32 ());
   return JoinReq::GetSerializedSize ();
 }
 
