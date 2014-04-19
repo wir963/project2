@@ -202,11 +202,11 @@ GUChord::RunStabilize ()
     // send stabilize to your successor
     Ipv4Address my_ip = GetLocalAddress();
     uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
-    GUChordMessage resp = GUChordMessage (GUChordMessage::STABILIZE_REQ, transactionId);
+    GUChordMessage resp = GUChordMessage (GUChordMessage::STABILIZE_REQ, GetNextTransactionId ());
     resp.SetStabilizeReq (my_id, my_ip);
     Ptr<Packet> packet = Create<Packet> ();
     packet->AddHeader (resp);
-    m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, sourcePort));
+    m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, inetSocketAddr.GetPort ()));
 }
 
 void
