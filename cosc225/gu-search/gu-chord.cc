@@ -221,20 +221,15 @@ GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint
     uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
     if (my_id < request_node_id && request_node_id < successor_id)
     {
-        // found the successor, which is successor_id
-        GUChordMessage resp = GUChordMessage (GUChordMessage::JOIN_RSP, message.GetTransactionId());
-        //resp.SetJoinRsp (message.GetJoinReq());
-        Ptr<Packet> packet = Create<Packet> ();
-        packet->AddHeader (resp);
-        m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, sourcePort));
+        SendJoinRsp(message);
     }
     else if (request_node_id > my_id && my_id > successor_id)
     {
-        // found the successor, which is successor_id
+        SendJoinRsp(message);
     }
     else if (successor_id == my_id)
     {
-        // found the successor, which is successor_id
+        SendJoinRsp(message);
     }
     else
     {
@@ -245,6 +240,16 @@ GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint
         packet->AddHeader (resp);
         m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, sourcePort));
     }
+}
+
+void
+GUChord::SendJoinRsp(GUChordMessage message)
+{
+    GUChordMessage resp = GUChordMessage (GUChordMessage::JOIN_RSP, message.GetTransactionId());
+    resp.SetJoinRsp (message.GetJoinReq(), successor_id, successor_ip_address);
+    Ptr<Packet> packet = Create<Packet> ();
+    packet->AddHeader (resp);
+    m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, sourcePort));
 }
 
 void
