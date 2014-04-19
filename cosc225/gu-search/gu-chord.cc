@@ -249,15 +249,15 @@ std::cout << "received " << message.GetMessageType() << " message at node" << me
     uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
     if (my_id < request_node_id && request_node_id < successor_id)
     {
-        SendJoinRsp(message);
+        SendJoinRsp(message, uint16_t sourcePort);
     }
     else if (request_node_id > my_id && my_id > successor_id)
     {
-        SendJoinRsp(message);
+        SendJoinRsp(message, uint16_t sourcePort);
     }
     else if (successor_id == my_id)
     {
-        SendJoinRsp(message);
+        SendJoinRsp(message, uint16_t sourcePort);
     }
     else
     {
@@ -271,7 +271,7 @@ std::cout << "received " << message.GetMessageType() << " message at node" << me
 }
 
 void
-GUChord::SendJoinRsp(GUChordMessage message)
+GUChord::SendJoinRsp(GUChordMessage message, uint16_t sourcePort)
 {
     GUChordMessage resp = GUChordMessage (GUChordMessage::JOIN_RSP, message.GetTransactionId());
     resp.SetJoinRsp (message.GetJoinReq(), successor_id, successor_ip_address);
