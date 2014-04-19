@@ -233,6 +233,7 @@ class GUChordMessage : public Header
 
     DepartureReq GetDepartureReq ();
     void SetDepartureReq (std::string message);
+    void SetDepartureReq (uint32_t, Ipv4Address, uint32_t, Ipv4Address);
 
     StabilizeReq GetStabilizeReq ();
     void SetStabilizeReq (std::string message);

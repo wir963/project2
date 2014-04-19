@@ -503,6 +503,26 @@ GUChordMessage::SetDepartureReq (std::string departureReqMessage)
   m_message.departureReq.departureReqMessage = departureReqMessage;
 }
 
+void
+GUChordMessage::SetDepartureReq (uint32_t sender_node_number, Ipv4Address sender_ip_address, uint32_t conn_node_number, Ipv4Address conn_ip_address)
+{
+
+        if (m_messageType == 0)
+            {
+              m_messageType = DEPARTURE_REQ;
+            }
+          else
+            {
+              NS_ASSERT (m_messageType == DEPARTURE_REQ);
+            }
+          
+        m_message.departureReq.sender_node_id = sender_node_number;
+        m_message.departureReq.sender_node_ip_address = sender_ip_address;
+        m_message.departureReq.conn_node_id = conn_node_number;
+        m_message.departureReq.conn_node_ip_address = conn_ip_address;
+
+}
+
 GUChordMessage::DepartureReq
 GUChordMessage::GetDepartureReq ()
 {
