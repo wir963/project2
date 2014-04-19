@@ -497,7 +497,7 @@ GUChordMessage::DepartureReq::Deserialize (Buffer::Iterator &start)
 }
 
 void
-GUChordMessage::SetDepartureReq (std::string departureReqMessage)
+GUChordMessage::SetDepartureReq ()
 {
   if (m_messageType == 0)
     {
@@ -507,7 +507,7 @@ GUChordMessage::SetDepartureReq (std::string departureReqMessage)
     {
       NS_ASSERT (m_messageType == DEPARTURE_REQ);
     }
-  m_message.departureReq.departureReqMessage = departureReqMessage;
+  //m_message.departureReq.departureReqMessage = departureReqMessage;
 }
 
 GUChordMessage::DepartureReq
@@ -549,7 +549,7 @@ GUChordMessage::StabilizeReq::Deserialize (Buffer::Iterator &start)
 }
 
 void
-GUChordMessage::SetStabilizeReq (std::string stabilizeReqMessage)
+GUChordMessage::SetStabilizeReq ()
 {
   if (m_messageType == 0)
     {
@@ -559,7 +559,7 @@ GUChordMessage::SetStabilizeReq (std::string stabilizeReqMessage)
     {
       NS_ASSERT (m_messageType == STABILIZE_REQ);
     }
-  m_message.stabilizeReq.stabilizeReqMessage = stabilizeReqMessage;
+  //m_message.stabilizeReq.stabilizeReqMessage = stabilizeReqMessage;
 }
 
 GUChordMessage::StabilizeReq
@@ -600,7 +600,7 @@ GUChordMessage::StabilizeRsp::Deserialize (Buffer::Iterator &start)
 }
 
 void
-GUChordMessage::SetStabilizeRsp (std::string stabilizeRspMessage)
+GUChordMessage::SetStabilizeRsp ()
 {
   if (m_messageType == 0)
     {
@@ -610,7 +610,7 @@ GUChordMessage::SetStabilizeRsp (std::string stabilizeRspMessage)
     {
       NS_ASSERT (m_messageType == STABILIZE_RSP);
     }
-  m_message.stabilizeRsp.stabilizeRspMessage = stabilizeRspMessage;
+  //m_message.stabilizeRsp.stabilizeRspMessage = stabilizeRspMessage;
 }
 
 GUChordMessage::StabilizeRsp

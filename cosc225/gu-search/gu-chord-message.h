@@ -226,13 +226,13 @@ class GUChordMessage : public Header
     void SetJoinRsp (JoinReq, uint32_t, Ipv4Address);
 
     DepartureReq GetDepartureReq ();
-    void SetDepartureReq (std::string message);
+    void SetDepartureReq ();
 
     StabilizeReq GetStabilizeReq ();
-    void SetStabilizeReq (std::string message);
+    void SetStabilizeReq ();
 
     StabilizeRsp GetStabilizeRsp ();
-    void SetStabilizeRsp (std::string message);
+    void SetStabilizeRsp ();
 
 }; // class GUChordMessage
 
