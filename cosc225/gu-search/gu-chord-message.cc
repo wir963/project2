@@ -618,7 +618,7 @@ GUChordMessage::StabilizeRsp::Deserialize (Buffer::Iterator &start)
 }
 
 void
-GUChordMessage::SetStabilizeRsp ()
+GUChordMessage::SetStabilizeRsp (uint32_t node_id, Ipv4Address ip_address)
 {
   if (m_messageType == 0)
     {
@@ -628,7 +628,8 @@ GUChordMessage::SetStabilizeRsp ()
     {
       NS_ASSERT (m_messageType == STABILIZE_RSP);
     }
-  //m_message.stabilizeRsp.stabilizeRspMessage = stabilizeRspMessage;
+    m_message.stabilizeRsp.predecessor_node_id = node_id;
+    m_message.stabilizeRsp.predecessor_node_ip_address = ip_address;
 }
 
 GUChordMessage::StabilizeRsp
