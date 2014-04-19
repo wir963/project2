@@ -81,7 +81,7 @@ GUChord::StartApplication (void)
   m_auditPingsTimer.SetFunction (&GUChord::AuditPings, this);
   // Start timers
   m_auditPingsTimer.Schedule (m_pingTimeout);
-    stabilize_timeout = MilliSeconds (2000);
+    stabilize_timeout = MilliSeconds (20);
     stabilize_timer.SetFunction (&GUChord::RunStabilize, this);
     stabilize_timer.Schedule(stabilize_timeout);
 }
