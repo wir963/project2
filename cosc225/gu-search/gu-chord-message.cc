@@ -342,7 +342,7 @@ GUChordMessage::JoinReq::Deserialize (Buffer::Iterator &start)
 }
 
 void
-GUChordMessage::SetJoinReq (std::string joinReqMessage)
+GUChordMessage::SetJoinReq (JoinReq joinRequest)
 {
   if (m_messageType == 0)
     {
@@ -352,7 +352,7 @@ GUChordMessage::SetJoinReq (std::string joinReqMessage)
     {
       NS_ASSERT (m_messageType == JOIN_REQ);
     }
-  m_message.joinReq.joinReqMessage = joinReqMessage;
+  m_message.joinReq = joinRequest;
 }
 
 GUChordMessage::JoinReq
@@ -396,7 +396,7 @@ GUChordMessage::JoinRsp::Deserialize (Buffer::Iterator &start)
 }
 
 void
-GUChordMessage::SetJoinRsp (std::string joinRspMessage)
+GUChordMessage::SetJoinRsp (JoinRsp joinResponse)
 {
   if (m_messageType == 0)
     {
@@ -406,7 +406,26 @@ GUChordMessage::SetJoinRsp (std::string joinRspMessage)
     {
       NS_ASSERT (m_messageType == JOIN_RSP);
     }
-  m_message.joinRsp.joinRspMessage = joinRspMessage;
+  m_message.joinRsp = joinResponse;
+}
+
+void
+GUChordMessage::SetJoinRsp (JoinReq joinRequest, uint32_t succ_id, Ipv4Address succ_ip)
+{
+    if (m_messageType == 0)
+    {
+        m_messageType = JOIN_RSP;
+    }
+    else
+    {
+        NS_ASSERT (m_messageType == JOIN_RSP);
+    }
+    m_message.joinRsp.successor_ip_address = succ_ip;
+    m_message.joinRsp.successor_id = succ_id;
+    m_message.joinRsp.request_id = joinRequest.request_id;
+    m_message.joinRsp.request_ip_address = joinRequest.request_ip_address;
+    m_message.joinRsp.landmark_id = joinRequest.landmark_id;
+    m_message.joinRsp.landmark_ip_address = joinRequest.landmark_ip_address;
 }
 
 GUChordMessage::JoinRsp

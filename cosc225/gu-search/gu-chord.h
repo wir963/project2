@@ -85,9 +85,12 @@ class GUChord : public GUApplication
     Callback <void, Ipv4Address, std::string> m_pingFailureFn;
     Callback <void, Ipv4Address, std::string> m_pingRecvFn;
     
-    // start of new Chord values
-    //int successor_node = NULL;
-    //int predecessor_node = NULL;
+
+    // start of new Chord variables
+    uint32_t successor_id;
+    uint32_t predecessor_id;
+    Ipv4Address successor_ip_address;
+    Ipv4Address predecessor_ip_address;
 };
 
 #endif

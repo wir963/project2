@@ -235,11 +235,50 @@ GUChord::ProcessPingRsp (GUChordMessage message, Ipv4Address sourceAddress, uint
 void
 GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
 {
-std::cout << "received " << message.GetMessageType() << " message at node" << message.GetJoinReq ().sender_node_ip_address << std::endl;
+
+std::cout << "received " << message.GetMessageType() << " message at node" << message.GetJoinReq ().sender_ip_address << std::endl;
     // will only get this if you are the landmark node
     // need to figure out which node should be the successor for the sender/ new node
     // 
     // then need to send the IP Address of this node to the sender
+    // landmark_node is the node that received the original message
+    // request_node is the node that asked to join the network
+    uint32_t request_node_id = message.GetJoinReq().request_id;
+    Ipv4Address my_ip = GetLocalAddress();
+    // check to see if m_mainAddress exists?
+    uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
+    if (my_id < request_node_id && request_node_id < successor_id)
+    {
+        SendJoinRsp(message);
+    }
+    else if (request_node_id > my_id && my_id > successor_id)
+    {
+        SendJoinRsp(message);
+    }
+    else if (successor_id == my_id)
+    {
+        SendJoinRsp(message);
+    }
+    else
+    {
+        // need to keep searching so forward the message along
+        GUChordMessage resp = GUChordMessage (GUChordMessage::JOIN_REQ, message.GetTransactionId());
+        resp.SetJoinReq (message.GetJoinReq());
+        Ptr<Packet> packet = Create<Packet> ();
+        packet->AddHeader (resp);
+        m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, sourcePort));
+    }
+}
+
+void
+GUChord::SendJoinRsp(GUChordMessage message)
+{
+    GUChordMessage resp = GUChordMessage (GUChordMessage::JOIN_RSP, message.GetTransactionId());
+    resp.SetJoinRsp (message.GetJoinReq(), successor_id, successor_ip_address);
+    Ptr<Packet> packet = Create<Packet> ();
+    packet->AddHeader (resp);
+    m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, sourcePort));
+>>>>>>> welles
 }
 
 void

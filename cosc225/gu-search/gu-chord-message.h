@@ -112,13 +112,13 @@ class GUChordMessage : public Header
         uint32_t GetSerializedSize (void) const;
         void Serialize (Buffer::Iterator &start) const;
         uint32_t Deserialize (Buffer::Iterator &start);
-        
 
         // Payload
         std::string joinReqMessage;
-
-        uint32_t sender_node_id;
-        Ipv4Address sender_node_ip_address;
+        uint32_t landmark_id;
+        Ipv4Address landmark_ip_address;
+        uint32_t request_id;
+        Ipv4Address request_ip_address;
     };
     
     struct JoinRsp
@@ -130,9 +130,13 @@ class GUChordMessage : public Header
         
         // Payload
         std::string joinRspMessage;
-
-        uint32_t successor_node_id;
-        Ipv4Address successor_node_ip_address;
+        
+        uint32_t request_id;
+        Ipv4Address request_ip_address;
+        uint32_t landmark_id;
+        Ipv4Address landmark_ip_address;
+        uint32_t successor_id;
+        Ipv4Address successor_ip_address;
     };
     
     struct DepartureReq
@@ -219,10 +223,11 @@ class GUChordMessage : public Header
     void SetPingRsp (std::string message);
 
     JoinReq GetJoinReq ();
-    void SetJoinReq (std::string message);
+    void SetJoinReq (JoinReq);
 
     JoinRsp GetJoinRsp ();
-    void SetJoinRsp (std::string message);
+    void SetJoinRsp (JoinRsp);
+    void SetJoinRsp (JoinReq, uint32_t, Ipv4Address);
 
     DepartureReq GetDepartureReq ();
     void SetDepartureReq (std::string message);
