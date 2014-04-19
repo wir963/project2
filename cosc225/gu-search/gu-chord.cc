@@ -105,6 +105,9 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
 {
   std::vector<std::string>::iterator iterator = tokens.begin();
   std::string command = *iterator;
+  // let's print out the command
+    std::cout << "In Process Command" << std::endl;
+    std::cout << "The command is " << command << endl;
 }
 
 void
@@ -212,7 +215,7 @@ GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint
 {
     // will only get this if you are the landmark node
     // need to figure out which node should be the successor for the sender/ new node
-    // how to do this???
+    // 
     // then need to send the IP Address of this node to the sender
 }
 
