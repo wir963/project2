@@ -420,7 +420,7 @@ GUChordMessage::SetJoinRsp (JoinReq joinRequest, uint32_t succ_id, Ipv4Address s
     {
         NS_ASSERT (m_messageType == JOIN_RSP);
     }
-    m_message.joinRsp.sucessor_ip_address = succ_ip;
+    m_message.joinRsp.successor_ip_address = succ_ip;
     m_message.joinRsp.successor_id = succ_id;
     m_message.joinRsp.request_id = joinRequest.request_id;
     m_message.joinRsp.request_ip_address = joinRequest.request_ip_address;
