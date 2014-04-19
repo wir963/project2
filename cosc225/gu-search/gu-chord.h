@@ -95,6 +95,7 @@ class GUChord : public GUApplication
     Ipv4Address successor_ip_address;
     Ipv4Address predecessor_ip_address;
     Timer stabilize_timer;
+    Time stabilize_timeout;
 };
 
 #endif
