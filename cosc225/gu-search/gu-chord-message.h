@@ -114,8 +114,7 @@ class GUChordMessage : public Header
         uint32_t Deserialize (Buffer::Iterator &start);
 
         // Payload
-
-        std::string joinReqMessage;
+        
         uint32_t landmark_id;
         Ipv4Address landmark_ip_address;
         uint32_t request_id;
