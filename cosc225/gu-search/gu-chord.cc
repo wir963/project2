@@ -262,7 +262,11 @@ std::cout << "received " << message.GetMessageType() << " message at node" << me
     }
     else if (successor_id == my_id)
     {
-        SendJoinRsp(message, sourcePort);
+        GUChordMessage resp = GUChordMessage (GUChordMessage::JOIN_RSP, message.GetTransactionId());
+        resp.SetJoinRsp (message.GetJoinReq(), successor_id, successor_ip_address);
+        Ptr<Packet> packet = Create<Packet> ();
+        packet->AddHeader (resp);
+        m_socket->SendTo (packet, 0 , InetSocketAddress (sourceAddress, sourcePort));
     }
     else
     {
