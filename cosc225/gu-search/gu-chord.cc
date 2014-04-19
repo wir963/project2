@@ -287,7 +287,7 @@ GUChord::ProcessJoinRsp (GUChordMessage message, Ipv4Address sourceAddress, uint
     // check to see if m_mainAddress exists?
     uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
     // if you are the landmark node, then send this information to the request node
-    if (my_id == message.GetJoinRsp.landmark_id)
+    if (my_id == message.GetJoinRsp().landmark_id)
     {
         GUChordMessage resp = GUChordMessage (GUChordMessage::JOIN_RSP, message.GetTransactionId());
         resp.SetJoinRsp (message.GetJoinRsp());
@@ -296,7 +296,7 @@ GUChord::ProcessJoinRsp (GUChordMessage message, Ipv4Address sourceAddress, uint
         m_socket->SendTo (packet, 0 , InetSocketAddress (message.GetJoinRsp().request_ip_address, sourcePort));
     }
     // if you are the original requester
-    else if (my_id == message.GetJoinRsp.request_id)
+    else if (my_id == message.GetJoinRsp().request_id)
     {
         successor_ip_address = message.GetJoinRsp().successor_ip_address;
         successor_id = message.GetJoinRsp().successor_id;
