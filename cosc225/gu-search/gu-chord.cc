@@ -106,8 +106,30 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
   std::vector<std::string>::iterator iterator = tokens.begin();
   std::string command = *iterator;
   // let's print out the command
-    std::cout << "In Process Command" << std::endl;
-    std::cout << "The command is " << command << endl;
+  std::cout << "In Process Command" << std::endl;
+  std::cout << "The command is " << command << std::endl;
+
+  if (command == "join" || command == "JOIN")
+    {
+          iterator++;
+          std::istringstream sin (*iterator);
+          std::string nodeNumber;
+          sin >> nodeNumber;
+          //std::cout << nodeNumber << std::endl;
+          Ipv4Address destAddress = ResolveNodeIpAddress (nodeNumber);
+          uint32_t transactionId = GetNextTransactionId ();
+
+          Ptr<Packet> packet = Create<Packet> ();
+          GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::JOIN_REQ, transactionId );
+          //guChordMessage.SetPingReq (destAddress, pingMessage);
+          packet->AddHeader (guChordMessage);
+          m_socket->SendTo (packet, 0 , InetSocketAddress (destAddress, m_appPort));
+        
+    }
+  else if (command == "leave")
+    {
+      
+    }
 }
 
 void
@@ -213,6 +235,7 @@ GUChord::ProcessPingRsp (GUChordMessage message, Ipv4Address sourceAddress, uint
 void
 GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
 {
+std::cout << "received " << message.GetMessageType() << " message at node" << message.GetJoinReq ().sender_node_ip_address << std::endl;
     // will only get this if you are the landmark node
     // need to figure out which node should be the successor for the sender/ new node
     // 
