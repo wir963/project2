@@ -41,7 +41,8 @@ class GUChordMessage : public Header
         JOIN_RSP = 4,
         DEPARTURE_REQ = 5,
         STABILIZE_RSP = 6,
-        STABILIZE_REQ = 7       
+        STABILIZE_REQ = 7,
+        RING_STATE_PING = 8       
       };
 
     GUChordMessage (GUChordMessage::MessageType messageType, uint32_t transactionId);
@@ -180,6 +181,20 @@ class GUChordMessage : public Header
         Ipv4Address predecessor_node_ip_address;
     };
 
+    struct RingStatePing
+    {
+
+        void Print (std::ostream &os) const;
+        uint32_t GetSerializedSize (void) const;
+        void Serialize (Buffer::Iterator &start) const;
+        uint32_t Deserialize (Buffer::Iterator &start);
+        
+        // Payload
+
+        uint32_t originator_node_id;
+        Ipv4Address originator_node_ip_address;
+    };
+
 
   private:
     struct
@@ -191,6 +206,7 @@ class GUChordMessage : public Header
         DepartureReq departureReq;
         StabilizeReq stabilizeReq;
         StabilizeRsp stabilizeRsp;
+        RingStatePing ringStatePing;
 
       } m_message;
     
@@ -226,7 +242,6 @@ class GUChordMessage : public Header
     void SetJoinRsp (JoinReq, uint32_t, Ipv4Address);
 
     DepartureReq GetDepartureReq ();
-    void SetDepartureReq (std::string message);
     void SetDepartureReq (uint32_t, Ipv4Address, uint32_t, Ipv4Address);
     void SetDepartureReq ();
 
@@ -235,6 +250,11 @@ class GUChordMessage : public Header
 
     StabilizeRsp GetStabilizeRsp ();
     void SetStabilizeRsp ();
+
+    RingStatePing GetRingStatePing ();
+    void SetRingStatePing (uint32_t, Ipv4Address);
+
+    
 
 }; // class GUChordMessage
 
