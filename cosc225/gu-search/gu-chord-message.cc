@@ -594,8 +594,8 @@ GUChordMessage::StabilizeRsp::Serialize (Buffer::Iterator &start) const
 uint32_t
 GUChordMessage::StabilizeRsp::Deserialize (Buffer::Iterator &start)
 {  
-  sender_node_id = start.ReadU32();
-  sender_node_ip_address = Ipv4Address (start.ReadNtohU32 ());
+  predecessor_node_id = start.ReadU32();
+  predecessor_node_ip_address = Ipv4Address (start.ReadNtohU32 ());
   return StabilizeRsp::GetSerializedSize ();
 }
 
