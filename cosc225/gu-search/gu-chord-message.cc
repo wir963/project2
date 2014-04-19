@@ -342,7 +342,7 @@ GUChordMessage::JoinReq::Deserialize (Buffer::Iterator &start)
 }
 
 void
-GUChordMessage::SetJoinReq (std::string joinReqMessage)
+GUChordMessage::SetJoinReq (JoinReq joinRequest)
 {
   if (m_messageType == 0)
     {
@@ -352,7 +352,7 @@ GUChordMessage::SetJoinReq (std::string joinReqMessage)
     {
       NS_ASSERT (m_messageType == JOIN_REQ);
     }
-  m_message.joinReq.joinReqMessage = joinReqMessage;
+  m_message.joinReq = joinRequest;
 }
 
 GUChordMessage::JoinReq
