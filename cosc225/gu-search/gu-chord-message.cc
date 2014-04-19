@@ -569,7 +569,7 @@ GUChordMessage::StabilizeReq::Deserialize (Buffer::Iterator &start)
 }
 
 void
-GUChordMessage::SetStabilizeReq ()
+GUChordMessage::SetStabilizeReq (uint32_t node_id, Ipv4Address ip_address)
 {
   if (m_messageType == 0)
     {
@@ -579,7 +579,8 @@ GUChordMessage::SetStabilizeReq ()
     {
       NS_ASSERT (m_messageType == STABILIZE_REQ);
     }
-  //m_message.stabilizeReq.stabilizeReqMessage = stabilizeReqMessage;
+    m_message.stabilizeReq.sender_node_id = node_id;
+    m_message.stabilizeReq.sender_node_ip_address = ip_address;
 }
 
 GUChordMessage::StabilizeReq
