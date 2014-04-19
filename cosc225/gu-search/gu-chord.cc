@@ -183,7 +183,7 @@ GUChord::ProcessPingReq (GUChordMessage message, Ipv4Address sourceAddress, uint
     Ptr<Packet> packet = Create<Packet> ();
     packet->AddHeader (resp);
     m_socket->SendTo (packet, 0 , InetSocketAddress (sourceAddress, sourcePort));
-    // Send indication to application layer
+    // Send indication to application layer okay
     m_pingRecvFn (sourceAddress, message.GetPingReq().pingMessage);
 }
 
