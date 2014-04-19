@@ -396,7 +396,7 @@ GUChordMessage::JoinRsp::Deserialize (Buffer::Iterator &start)
 }
 
 void
-GUChordMessage::SetJoinRsp (std::string joinRspMessage)
+GUChordMessage::SetJoinRsp (JoinRsp joinResponse)
 {
   if (m_messageType == 0)
     {
@@ -406,7 +406,7 @@ GUChordMessage::SetJoinRsp (std::string joinRspMessage)
     {
       NS_ASSERT (m_messageType == JOIN_RSP);
     }
-  m_message.joinRsp.joinRspMessage = joinRspMessage;
+  m_message.joinRsp = joinResponse;
 }
 
 GUChordMessage::JoinRsp

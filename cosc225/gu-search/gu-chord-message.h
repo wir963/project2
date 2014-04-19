@@ -219,7 +219,7 @@ class GUChordMessage : public Header
     void SetPingRsp (std::string message);
 
     JoinReq GetJoinReq ();
-    void SetJoinReq (std::string message);
+    void SetJoinReq (JoinReq);
 
     JoinRsp GetJoinRsp ();
     void SetJoinRsp (JoinRsp);

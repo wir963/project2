@@ -223,7 +223,7 @@ GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint
     {
         // found the successor, which is successor_id
         GUChordMessage resp = GUChordMessage (GUChordMessage::JOIN_RSP, message.GetTransactionId());
-        resp.SetJoinRsp (message.GetJoinReq());
+        //resp.SetJoinRsp (message.GetJoinReq());
         Ptr<Packet> packet = Create<Packet> ();
         packet->AddHeader (resp);
         m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, sourcePort));
@@ -239,11 +239,11 @@ GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint
     else
     {
         // need to keep searching so forward the message along
-        /*GUChordMessage resp = GUChordMessage (GUChordMessage::JOIN_REQ, message.GetTransactionId());
+        GUChordMessage resp = GUChordMessage (GUChordMessage::JOIN_REQ, message.GetTransactionId());
         resp.SetJoinReq (message.GetJoinReq());
         Ptr<Packet> packet = Create<Packet> ();
         packet->AddHeader (resp);
-        m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, sourcePort));*/
+        m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, sourcePort));
     }
 }
 
