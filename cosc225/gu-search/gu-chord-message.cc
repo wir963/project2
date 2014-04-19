@@ -320,7 +320,7 @@ GUChordMessage::JoinReq::GetSerializedSize (void) const
 void
 GUChordMessage::JoinReq::Print (std::ostream &os) const
 {
-  os << "JoinReq:: Message: " << joinReqMessage << "\n";
+  //os << "JoinReq:: Message: " << joinReqMessage << "\n";
 }
 
 void
