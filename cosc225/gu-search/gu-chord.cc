@@ -380,8 +380,9 @@ void
 GUChord::ProcessStabilizeReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
 {
     // only nodes that think you are their successor will send you these messages
-    //uint32_t sender_id = atoi(ReverseLookup(sourceAddress).c_str());
-    // compare predecessor with sourceAddress
+    uint32_t sender_id = atoi(ReverseLookup(sourceAddress).c_str());
+    // if sourceAddress is > predecessor, set predecessor = sourceAddress
+
     if (sender_id > predecessor_id)// or if don't have predecessor yet?
     {
         predecessor_id = sender_id;
