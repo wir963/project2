@@ -222,7 +222,7 @@ class GUChordMessage : public Header
     void SetJoinReq (std::string message);
 
     JoinRsp GetJoinRsp ();
-    void SetJoinRsp (std::string message);
+    void SetJoinRsp (JoinRsp);
 
     DepartureReq GetDepartureReq ();
     void SetDepartureReq (std::string message);
