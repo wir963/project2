@@ -466,33 +466,34 @@ GUChordMessage::GetJoinRsp ()
 uint32_t 
 GUChordMessage::DepartureReq::GetSerializedSize (void) const
 {
-  uint32_t size;
-  size = sizeof(uint16_t) + departureReqMessage.length();
-  return size;
+    uint32_t size;
+    size = 2*IPV4_ADDRESS_SIZE + 2*sizeof(uint32_t);
+    return size;
 }
 
 void
 GUChordMessage::DepartureReq::Print (std::ostream &os) const
 {
-  os << "DepartureReq:: Message: " << departureReqMessage << "\n";
+  //os << "DepartureReq:: Message: " << departureReqMessage << "\n";
 }
 
 void
 GUChordMessage::DepartureReq::Serialize (Buffer::Iterator &start) const
 {
-  start.WriteU16 (departureReqMessage.length ());
-  start.Write ((uint8_t *) (const_cast<char*> (departureReqMessage.c_str())), departureReqMessage.length());
+    start.WriteU32 (sender_node_id);
+    start.WriteHtonU32(sender_node_ip_address.Get());
+    start.WriteU32 (conn_node_id);
+    start.WriteHtonU32(conn_node_ip_address.Get());
 }
 
 uint32_t
 GUChordMessage::DepartureReq::Deserialize (Buffer::Iterator &start)
 {  
-  uint16_t length = start.ReadU16 ();
-  char* str = (char*) malloc (length);
-  start.Read ((uint8_t*)str, length);
-  departureReqMessage = std::string (str, length);
-  free (str);
-  return DepartureReq::GetSerializedSize ();
+    sender_node_id = start.ReadU32();
+    sender_node_ip_address = Ipv4Address (start.ReadNtohU32 ());
+    conn_node_id = start.ReadU32();
+    conn_node_ip_address = Ipv4Address (start.ReadNtohU32 ());
+    return DepartureReq::GetSerializedSize ();
 }
 
 void
@@ -521,32 +522,29 @@ GUChordMessage::GetDepartureReq ()
 uint32_t 
 GUChordMessage::StabilizeReq::GetSerializedSize (void) const
 {
-  uint32_t size;
-  size = sizeof(uint16_t) + stabilizeReqMessage.length();
-  return size;
+    uint32_t size;
+    size = IPV4_ADDRESS_SIZE + sizeof(uint32_t);
+    return size;
 }
 
 void
 GUChordMessage::StabilizeReq::Print (std::ostream &os) const
 {
-  os << "StabilizeReq:: Message: " << stabilizeReqMessage << "\n";
+  //os << "StabilizeReq:: Message: " << stabilizeReqMessage << "\n";
 }
 
 void
 GUChordMessage::StabilizeReq::Serialize (Buffer::Iterator &start) const
 {
-  start.WriteU16 (stabilizeReqMessage.length ());
-  start.Write ((uint8_t *) (const_cast<char*> (stabilizeReqMessage.c_str())), stabilizeReqMessage.length());
+    start.WriteU32 (sender_node_id);
+    start.WriteHtonU32(sender_node_ip_address.Get());
 }
 
 uint32_t
 GUChordMessage::StabilizeReq::Deserialize (Buffer::Iterator &start)
 {  
-  uint16_t length = start.ReadU16 ();
-  char* str = (char*) malloc (length);
-  start.Read ((uint8_t*)str, length);
-  stabilizeReqMessage = std::string (str, length);
-  free (str);
+    sender_node_id = start.ReadU32();
+    sender_node_ip_address = Ipv4Address (start.ReadNtohU32 ());
   return StabilizeReq::GetSerializedSize ();
 }
 
@@ -575,9 +573,9 @@ GUChordMessage::GetStabilizeReq ()
 uint32_t 
 GUChordMessage::StabilizeRsp::GetSerializedSize (void) const
 {
-  uint32_t size;
-  size = sizeof(uint16_t) + stabilizeRspMessage.length();
-  return size;
+    uint32_t size;
+    size = IPV4_ADDRESS_SIZE + sizeof(uint32_t);
+    return size;
 }
 
 void
@@ -589,18 +587,15 @@ GUChordMessage::StabilizeRsp::Print (std::ostream &os) const
 void
 GUChordMessage::StabilizeRsp::Serialize (Buffer::Iterator &start) const
 {
-  start.WriteU16 (stabilizeRspMessage.length ());
-  start.Write ((uint8_t *) (const_cast<char*> (stabilizeRspMessage.c_str())), stabilizeRspMessage.length());
+    start.WriteU32 (predecessor_node_id);
+    start.WriteHtonU32(predecessor_node_ip_address.Get());
 }
 
 uint32_t
 GUChordMessage::StabilizeRsp::Deserialize (Buffer::Iterator &start)
 {  
-  uint16_t length = start.ReadU16 ();
-  char* str = (char*) malloc (length);
-  start.Read ((uint8_t*)str, length);
-  stabilizeRspMessage = std::string (str, length);
-  free (str);
+  sender_node_id = start.ReadU32();
+  sender_node_ip_address = Ipv4Address (start.ReadNtohU32 ());
   return StabilizeRsp::GetSerializedSize ();
 }
 
