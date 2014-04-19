@@ -404,10 +404,10 @@ GUChord::ProcessStabilizeRsp (GUChordMessage message, Ipv4Address sourceAddress,
     Ipv4Address my_ip = GetLocalAddress();
     // check to see if m_mainAddress exists?
     uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
-    uint32_t node_id = message.GetStabilizeRsp().predecessor_id;
+    uint32_t node_id = message.GetStabilizeRsp().predecessor_node_id;
     if (node_id != my_id) {
         successor_id = node_id;
-        successor_ip_address = message.GetStabilizeRsp().predecessor_ip_address;
+        successor_ip_address = message.GetStabilizeRsp().predecessor_node_ip_address;
     }
     
 }
