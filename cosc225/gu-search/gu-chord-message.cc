@@ -66,6 +66,21 @@ GUChordMessage::GetSerializedSize (void) const
       case PING_RSP:
         size += m_message.pingRsp.GetSerializedSize ();
         break;
+      case JOIN_REQ:
+        size += m_message.joinReq.GetSerializedSize ();
+        break;
+      case JOIN_RSP:
+        size += m_message.joinRsp.GetSerializedSize ();
+        break;
+      case DEPARTURE_REQ:
+        size += m_message.departureReq.GetSerializedSize ();
+        break;
+      case STABILIZE_REQ:
+        size += m_message.stabilizeReq.GetSerializedSize ();
+        break;
+      case STABILIZE_RSP:
+        size += m_message.stabilizeRsp.GetSerializedSize ();
+        break;
       default:
         NS_ASSERT (false);
     }
@@ -88,6 +103,21 @@ GUChordMessage::Print (std::ostream &os) const
       case PING_RSP:
         m_message.pingRsp.Print (os);
         break;
+      case JOIN_REQ:
+        m_message.joinReq.Print (os);
+        break;
+      case JOIN_RSP:
+        m_message.joinRsp.Print (os);
+        break;
+      case DEPARTURE_REQ:
+        m_message.departureReq.Print (os);
+        break;
+      case STABILIZE_REQ:
+        m_message.stabilizeReq.Print (os);
+        break;
+      case STABILIZE_RSP:
+        m_message.stabilizeRsp.Print (os);
+        break;
       default:
         break;  
     }
@@ -108,6 +138,21 @@ GUChordMessage::Serialize (Buffer::Iterator start) const
         break;
       case PING_RSP:
         m_message.pingRsp.Serialize (i);
+        break;
+      case JOIN_REQ:
+        m_message.joinReq.Serialize (i);
+        break;
+      case JOIN_RSP:
+        m_message.joinRsp.Serialize (i);
+        break;
+      case DEPARTURE_REQ:
+        m_message.departureReq.Serialize (i);
+        break;
+      case STABILIZE_REQ:
+        m_message.stabilizeReq.Serialize (i);
+        break;
+      case STABILIZE_RSP:
+        m_message.stabilizeRsp.Serialize (i);
         break;
       default:
         NS_ASSERT (false);   
@@ -131,6 +176,21 @@ GUChordMessage::Deserialize (Buffer::Iterator start)
         break;
       case PING_RSP:
         size += m_message.pingRsp.Deserialize (i);
+        break;
+      case JOIN_REQ:
+        size += m_message.joinReq.Deserialize (i);
+        break;
+      case JOIN_RSP:
+        size += m_message.joinRsp.Deserialize (i);
+        break;
+      case DEPARTURE_REQ:
+        size += m_message.departureReq.Deserialize (i);
+        break;
+      case STABILIZE_REQ:
+        size += m_message.stabilizeReq.Deserialize (i);
+        break;
+      case STABILIZE_RSP:
+        size += m_message.stabilizeRsp.Deserialize (i);
         break;
       default:
         NS_ASSERT (false);
@@ -246,6 +306,277 @@ GUChordMessage::GetPingRsp ()
   return m_message.pingRsp;
 }
 
+
+/* JOIN_REQ */
+
+uint32_t 
+GUChordMessage::JoinReq::GetSerializedSize (void) const
+{
+  uint32_t size;
+  size = sizeof(uint16_t) + joinReqMessage.length();
+  return size;
+}
+
+void
+GUChordMessage::JoinReq::Print (std::ostream &os) const
+{
+  os << "JoinReq:: Message: " << joinReqMessage << "\n";
+}
+
+void
+GUChordMessage::JoinReq::Serialize (Buffer::Iterator &start) const
+{
+  start.WriteU16 (joinReqMessage.length ());
+  start.Write ((uint8_t *) (const_cast<char*> (joinReqMessage.c_str())), joinReqMessage.length());
+}
+
+uint32_t
+GUChordMessage::JoinReq::Deserialize (Buffer::Iterator &start)
+{  
+  uint16_t length = start.ReadU16 ();
+  char* str = (char*) malloc (length);
+  start.Read ((uint8_t*)str, length);
+  joinReqMessage = std::string (str, length);
+  free (str);
+  return JoinReq::GetSerializedSize ();
+}
+
+void
+GUChordMessage::SetJoinReq (std::string joinReqMessage)
+{
+  if (m_messageType == 0)
+    {
+      m_messageType = JOIN_REQ;
+    }
+  else
+    {
+      NS_ASSERT (m_messageType == JOIN_REQ);
+    }
+  m_message.joinReq.joinReqMessage = joinReqMessage;
+}
+
+GUChordMessage::JoinReq
+GUChordMessage::GetJoinReq ()
+{
+  return m_message.joinReq;
+}
+
+/* JOIN_RSP */
+
+uint32_t 
+GUChordMessage::JoinRsp::GetSerializedSize (void) const
+{
+  uint32_t size;
+  size = sizeof(uint16_t) + joinRspMessage.length();
+  return size;
+}
+
+void
+GUChordMessage::JoinRsp::Print (std::ostream &os) const
+{
+  os << "JoinRsp:: Message: " << joinRspMessage << "\n";
+}
+
+void
+GUChordMessage::JoinRsp::Serialize (Buffer::Iterator &start) const
+{
+  start.WriteU16 (joinRspMessage.length ());
+  start.Write ((uint8_t *) (const_cast<char*> (joinRspMessage.c_str())), joinRspMessage.length());
+}
+
+uint32_t
+GUChordMessage::JoinRsp::Deserialize (Buffer::Iterator &start)
+{  
+  uint16_t length = start.ReadU16 ();
+  char* str = (char*) malloc (length);
+  start.Read ((uint8_t*)str, length);
+  joinRspMessage = std::string (str, length);
+  free (str);
+  return JoinRsp::GetSerializedSize ();
+}
+
+void
+GUChordMessage::SetJoinRsp (std::string joinRspMessage)
+{
+  if (m_messageType == 0)
+    {
+      m_messageType = JOIN_RSP;
+    }
+  else
+    {
+      NS_ASSERT (m_messageType == JOIN_RSP);
+    }
+  m_message.joinRsp.joinRspMessage = joinRspMessage;
+}
+
+GUChordMessage::JoinRsp
+GUChordMessage::GetJoinRsp ()
+{
+  return m_message.joinRsp;
+}
+
+/* DEPARTURE_REQ */
+
+uint32_t 
+GUChordMessage::DepartureReq::GetSerializedSize (void) const
+{
+  uint32_t size;
+  size = sizeof(uint16_t) + departureReqMessage.length();
+  return size;
+}
+
+void
+GUChordMessage::DepartureReq::Print (std::ostream &os) const
+{
+  os << "DepartureReq:: Message: " << departureReqMessage << "\n";
+}
+
+void
+GUChordMessage::DepartureReq::Serialize (Buffer::Iterator &start) const
+{
+  start.WriteU16 (departureReqMessage.length ());
+  start.Write ((uint8_t *) (const_cast<char*> (departureReqMessage.c_str())), departureReqMessage.length());
+}
+
+uint32_t
+GUChordMessage::DepartureReq::Deserialize (Buffer::Iterator &start)
+{  
+  uint16_t length = start.ReadU16 ();
+  char* str = (char*) malloc (length);
+  start.Read ((uint8_t*)str, length);
+  departureReqMessage = std::string (str, length);
+  free (str);
+  return DepartureReq::GetSerializedSize ();
+}
+
+void
+GUChordMessage::SetDepartureReq (std::string departureReqMessage)
+{
+  if (m_messageType == 0)
+    {
+      m_messageType = DEPARTURE_REQ;
+    }
+  else
+    {
+      NS_ASSERT (m_messageType == DEPARTURE_REQ);
+    }
+  m_message.departureReq.departureReqMessage = departureReqMessage;
+}
+
+GUChordMessage::DepartureReq
+GUChordMessage::GetDepartureReq ()
+{
+  return m_message.departureReq;
+}
+
+
+/* STABILIZE_REQ */
+
+uint32_t 
+GUChordMessage::StabilizeReq::GetSerializedSize (void) const
+{
+  uint32_t size;
+  size = sizeof(uint16_t) + stabilizeReqMessage.length();
+  return size;
+}
+
+void
+GUChordMessage::StabilizeReq::Print (std::ostream &os) const
+{
+  os << "StabilizeReq:: Message: " << stabilizeReqMessage << "\n";
+}
+
+void
+GUChordMessage::StabilizeReq::Serialize (Buffer::Iterator &start) const
+{
+  start.WriteU16 (stabilizeReqMessage.length ());
+  start.Write ((uint8_t *) (const_cast<char*> (stabilizeReqMessage.c_str())), stabilizeReqMessage.length());
+}
+
+uint32_t
+GUChordMessage::StabilizeReq::Deserialize (Buffer::Iterator &start)
+{  
+  uint16_t length = start.ReadU16 ();
+  char* str = (char*) malloc (length);
+  start.Read ((uint8_t*)str, length);
+  stabilizeReqMessage = std::string (str, length);
+  free (str);
+  return StabilizeReq::GetSerializedSize ();
+}
+
+void
+GUChordMessage::SetStabilizeReq (std::string stabilizeReqMessage)
+{
+  if (m_messageType == 0)
+    {
+      m_messageType = STABILIZE_REQ;
+    }
+  else
+    {
+      NS_ASSERT (m_messageType == STABILIZE_REQ);
+    }
+  m_message.stabilizeReq.stabilizeReqMessage = stabilizeReqMessage;
+}
+
+GUChordMessage::StabilizeReq
+GUChordMessage::GetStabilizeReq ()
+{
+  return m_message.stabilizeReq;
+}
+
+/* STABILIZE_RSP */
+
+uint32_t 
+GUChordMessage::StabilizeRsp::GetSerializedSize (void) const
+{
+  uint32_t size;
+  size = sizeof(uint16_t) + stabilizeRspMessage.length();
+  return size;
+}
+
+void
+GUChordMessage::StabilizeRsp::Print (std::ostream &os) const
+{
+  os << "StabilizeRsp:: Message: " << stabilizeRspMessage << "\n";
+}
+
+void
+GUChordMessage::StabilizeRsp::Serialize (Buffer::Iterator &start) const
+{
+  start.WriteU16 (stabilizeRspMessage.length ());
+  start.Write ((uint8_t *) (const_cast<char*> (stabilizeRspMessage.c_str())), stabilizeRspMessage.length());
+}
+
+uint32_t
+GUChordMessage::StabilizeRsp::Deserialize (Buffer::Iterator &start)
+{  
+  uint16_t length = start.ReadU16 ();
+  char* str = (char*) malloc (length);
+  start.Read ((uint8_t*)str, length);
+  stabilizeRspMessage = std::string (str, length);
+  free (str);
+  return StabilizeRsp::GetSerializedSize ();
+}
+
+void
+GUChordMessage::SetStabilizeRsp (std::string stabilizeRspMessage)
+{
+  if (m_messageType == 0)
+    {
+      m_messageType = STABILIZE_RSP;
+    }
+  else
+    {
+      NS_ASSERT (m_messageType == STABILIZE_RSP);
+    }
+  m_message.stabilizeRsp.stabilizeRspMessage = stabilizeRspMessage;
+}
+
+GUChordMessage::StabilizeRsp
+GUChordMessage::GetStabilizeRsp ()
+{
+  return m_message.stabilizeRsp;
+}
 
 //
 //
