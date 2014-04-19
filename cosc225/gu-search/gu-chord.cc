@@ -388,6 +388,20 @@ GUChord::ProcessDepartureReq (GUChordMessage message, Ipv4Address sourceAddress,
 {
 std::cout << "received " << message.GetMessageType() << " message from node " << message.GetDepartureReq ().sender_node_id << std::endl;
 
+        if(predecessor_id == message.GetDepartureReq ().sender_node_id) {
+
+          predecessor_id = message.GetDepartureReq ().conn_node_id;
+          predecessor_ip_address = message.GetDepartureReq ().conn_node_ip_address;
+
+}
+
+        else if (successor_id == message.GetDepartureReq ().sender_node_id) {
+
+          successor_id = message.GetDepartureReq ().conn_node_id;
+          successor_ip_address = message.GetDepartureReq ().conn_node_ip_address;
+
+}
+
     // check to see if sourceAddress came from my successor or predecessor
     // if successor, set successor = message.getDepartureReq().conn_node_ip_address
     // if predecessor, set predecessor = message.getDepartureReq().conn_node_ip_address
