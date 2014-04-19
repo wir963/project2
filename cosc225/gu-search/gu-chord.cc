@@ -83,7 +83,7 @@ GUChord::StartApplication (void)
   m_auditPingsTimer.Schedule (m_pingTimeout);
     stabilize_timeout = MilliSeconds (2000);
     stabilize_timer.SetFunction (&GUChord::RunStabilize, this);
-    stabilize_timer.Schedule(stabilize_timer);
+    stabilize_timer.Schedule(stabilize_timeout);
 }
 
 void
