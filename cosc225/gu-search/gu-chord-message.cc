@@ -388,33 +388,38 @@ GUChordMessage::GetJoinReq ()
 uint32_t 
 GUChordMessage::JoinRsp::GetSerializedSize (void) const
 {
-  uint32_t size;
-  size = sizeof(uint16_t) + joinRspMessage.length();
-  return size;
+    uint32_t size;
+    size = 3*IPV4_ADDRESS_SIZE + 3*sizeof(uint32_t);
+    return size;
 }
 
 void
 GUChordMessage::JoinRsp::Print (std::ostream &os) const
 {
-  os << "JoinRsp:: Message: " << joinRspMessage << "\n";
+  //os << "JoinRsp:: Message: " << joinRspMessage << "\n";
 }
 
 void
 GUChordMessage::JoinRsp::Serialize (Buffer::Iterator &start) const
 {
-  start.WriteU16 (joinRspMessage.length ());
-  start.Write ((uint8_t *) (const_cast<char*> (joinRspMessage.c_str())), joinRspMessage.length());
+    start.WriteU32 (landmark_id);
+    start.WriteHtonU32(landmark_ip_address.Get());
+    start.WriteU32 (request_id);
+    start.WriteHtonU32(request_ip_address.Get());
+    start.WriteU32 (successor_id);
+    start.WriteHtonU32(successor_ip_address.Get());
 }
 
 uint32_t
 GUChordMessage::JoinRsp::Deserialize (Buffer::Iterator &start)
 {  
-  uint16_t length = start.ReadU16 ();
-  char* str = (char*) malloc (length);
-  start.Read ((uint8_t*)str, length);
-  joinRspMessage = std::string (str, length);
-  free (str);
-  return JoinRsp::GetSerializedSize ();
+    landmark_id = start.ReadU32();
+    landmark_ip_address = Ipv4Address (start.ReadNtohU32 ());
+    request_id = start.ReadU32();
+    request_ip_address = Ipv4Address (start.ReadNtohU32 ());
+    successor_id = start.ReadU32();
+    successor_ip_address = Ipv4Address (start.ReadNtohU32 ());
+    return JoinRsp::GetSerializedSize ();
 }
 
 void
