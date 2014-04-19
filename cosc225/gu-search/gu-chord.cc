@@ -278,7 +278,6 @@ GUChord::SendJoinRsp(GUChordMessage message)
     Ptr<Packet> packet = Create<Packet> ();
     packet->AddHeader (resp);
     m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, sourcePort));
->>>>>>> welles
 }
 
 void

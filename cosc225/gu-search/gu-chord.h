@@ -48,6 +48,7 @@ class GUChord : public GUApplication
     void ProcessPingReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
     void ProcessPingRsp (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
     void ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
+    void SendJoinRsp (GUChordMessage);
     void ProcessJoinRsp (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
     void ProcessDepartureReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
     void ProcessStabilizeReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
