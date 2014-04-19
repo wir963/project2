@@ -114,7 +114,7 @@ class GUChordMessage : public Header
         uint32_t Deserialize (Buffer::Iterator &start);
 
         // Payload
-        std::string joinReqMessage;
+        
         uint32_t landmark_id;
         Ipv4Address landmark_ip_address;
         uint32_t request_id;
@@ -129,7 +129,6 @@ class GUChordMessage : public Header
         uint32_t Deserialize (Buffer::Iterator &start);
         
         // Payload
-        std::string joinRspMessage;
         
         uint32_t request_id;
         Ipv4Address request_ip_address;
@@ -148,8 +147,6 @@ class GUChordMessage : public Header
         uint32_t Deserialize (Buffer::Iterator &start);
         
         // Payload
-        std::string departureReqMessage;        
-
         uint32_t sender_node_id;
         Ipv4Address sender_node_ip_address;
         uint32_t conn_node_id;
@@ -163,8 +160,7 @@ class GUChordMessage : public Header
         void Serialize (Buffer::Iterator &start) const;
         uint32_t Deserialize (Buffer::Iterator &start);
         
-        // Payload
-        std::string stabilizeReqMessage;        
+        // Payload     
 
         uint32_t sender_node_id;
         Ipv4Address sender_node_ip_address;
@@ -179,7 +175,6 @@ class GUChordMessage : public Header
         uint32_t Deserialize (Buffer::Iterator &start);
         
         // Payload
-        std::string stabilizeRspMessage;
 
         uint32_t predecessor_node_id;
         Ipv4Address predecessor_node_ip_address;
@@ -224,6 +219,7 @@ class GUChordMessage : public Header
 
     JoinReq GetJoinReq ();
     void SetJoinReq (JoinReq);
+    void SetJoinReq (uint32_t, Ipv4Address, uint32_t, Ipv4Address); 
 
     JoinRsp GetJoinRsp ();
     void SetJoinRsp (JoinRsp);
@@ -231,12 +227,14 @@ class GUChordMessage : public Header
 
     DepartureReq GetDepartureReq ();
     void SetDepartureReq (std::string message);
+    void SetDepartureReq (uint32_t, Ipv4Address, uint32_t, Ipv4Address);
+    void SetDepartureReq ();
 
     StabilizeReq GetStabilizeReq ();
-    void SetStabilizeReq (std::string message);
+    void SetStabilizeReq ();
 
     StabilizeRsp GetStabilizeRsp ();
-    void SetStabilizeRsp (std::string message);
+    void SetStabilizeRsp ();
 
 }; // class GUChordMessage
 
