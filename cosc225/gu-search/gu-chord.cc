@@ -111,24 +111,41 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
 
   if (command == "join" || command == "JOIN")
     {
+
           iterator++;
           std::istringstream sin (*iterator);
           std::string nodeNumber;
           sin >> nodeNumber;
-          //std::cout << nodeNumber << std::endl;
+
           Ipv4Address destAddress = ResolveNodeIpAddress (nodeNumber);
           uint32_t transactionId = GetNextTransactionId ();
 
-          Ptr<Packet> packet = Create<Packet> ();
-          GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::JOIN_REQ, transactionId );
-                
           Ipv4Address my_ip = GetLocalAddress();
           uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
           uint32_t recipient_id = atoi(nodeNumber.c_str());
 
+          std::cout << recipient_id << " " << my_id << std::endl;
+          if(recipient_id == my_id) {
+
+                std::cout << "Landmark Case" << std::endl;
+
+                successor_id = my_id;
+                successor_ip_address = my_ip;
+                predecessor_id = my_id;
+                predecessor_ip_address = my_ip;
+
+          }
+
+          else {
+
+          std::cout << "Not Landmark Case" << std::endl;
+
+          Ptr<Packet> packet = Create<Packet> ();
+          GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::JOIN_REQ, transactionId );
+
           guChordMessage.SetJoinReq (my_id, my_ip, recipient_id, destAddress);
           packet->AddHeader (guChordMessage);
-          m_socket->SendTo (packet, 0 , InetSocketAddress (destAddress, m_appPort));
+          m_socket->SendTo (packet, 0 , InetSocketAddress (destAddress, m_appPort)); }
         
     }
   else if (command == "leave" || command == "LEAVE")
@@ -262,7 +279,7 @@ void
 GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
 {
 
-std::cout << "received " << message.GetMessageType() << " message at node" << message.GetJoinReq ().landmark_ip_address << std::endl;
+std::cout << "received " << message.GetMessageType() << " message at node " << message.GetJoinReq ().landmark_id << std::endl;
     // will only get this if you are the landmark node
     // need to figure out which node should be the successor for the sender/ new node
     
@@ -283,6 +300,7 @@ std::cout << "received " << message.GetMessageType() << " message at node" << me
     }
     else if (successor_id == my_id)
     {
+        std::cout << "One Node case" << std::endl;        
         SendJoinRsp(message, sourcePort);
     }
     else
@@ -346,6 +364,8 @@ GUChord::ProcessJoinRsp (GUChordMessage message, Ipv4Address sourceAddress, uint
 void
 GUChord::ProcessDepartureReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
 {
+std::cout << "received " << message.GetMessageType() << " message from node " << message.GetDepartureReq ().sender_node_id << std::endl;
+
     // check to see if sourceAddress came from my successor or predecessor
     // if successor, set successor = message.getDepartureReq().conn_node_ip_address
     // if predecessor, set predecessor = message.getDepartureReq().conn_node_ip_address
