@@ -236,7 +236,7 @@ void
 GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
 {
 
-std::cout << "received " << message.GetMessageType() << " message at node" << message.GetJoinReq ().sender_ip_address << std::endl;
+std::cout << "received " << message.GetMessageType() << " message at node" << message.GetJoinReq ().request_ip_address << std::endl;
     // will only get this if you are the landmark node
     // need to figure out which node should be the successor for the sender/ new node
     // 
