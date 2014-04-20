@@ -110,6 +110,7 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
 {
   std::vector<std::string>::iterator iterator = tokens.begin();
   std::string command = *iterator;
+  
   // let's print out the command
   std::cout << "In Process Command" << std::endl;
   std::cout << "The command is " << command << std::endl;
@@ -138,6 +139,7 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
                 successor_ip_address = my_ip;
                 predecessor_id = my_id;
                 predecessor_ip_address = my_ip;
+                in_ring = true;
 
           }
 
@@ -162,12 +164,15 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
           uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
           //uint32_t recipient_id = atoi(nodeNumber.c_str());
 
+        in_ring = false;
+
           Ptr<Packet> packet = Create<Packet> ();
           GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::DEPARTURE_REQ, transactionId );
 
           guChordMessage.SetDepartureReq (my_id, my_ip, predecessor_id, predecessor_ip_address);
           packet->AddHeader (guChordMessage);
           m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, m_appPort));
+
 
         Ptr<Packet> packet2 = Create<Packet> ();
                   GUChordMessage guChordMessage2 = GUChordMessage        (GUChordMessage::DEPARTURE_REQ, transactionId );
@@ -202,7 +207,7 @@ void
 GUChord::RunStabilize ()
 {
     // send stabilize to your successor
-
+if (in_ring == true){
     Ipv4Address my_ip = GetLocalAddress();
     uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
     GUChordMessage resp = GUChordMessage (GUChordMessage::STABILIZE_REQ, GetNextTransactionId ());
@@ -211,6 +216,7 @@ GUChord::RunStabilize ()
     Ptr<Packet> packet = Create<Packet> ();
     packet->AddHeader (resp);
     m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, m_appPort));
+}
 
 stabilize_timer.Schedule(stabilize_timeout);
 }
@@ -396,6 +402,8 @@ GUChord::ProcessJoinRsp (GUChordMessage message, Ipv4Address sourceAddress, uint
         successor_ip_address = message.GetJoinRsp().successor_ip_address;
         successor_id = message.GetJoinRsp().successor_id;
         // joined the tree!
+
+        in_ring = true;
     }
     else
     {
@@ -417,21 +425,31 @@ GUChord::ProcessJoinRsp (GUChordMessage message, Ipv4Address sourceAddress, uint
 void
 GUChord::ProcessDepartureReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
 {
-std::cout << "received " << message.GetMessageType() << " message from node " << message.GetDepartureReq ().sender_node_id << std::endl;
+
+Ipv4Address my_ip = GetLocalAddress();
+          uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
+
+std::cout << my_id << "received " << message.GetMessageType() << " message from node " << message.GetDepartureReq ().sender_node_id << std::endl;
 
         if(predecessor_id == message.GetDepartureReq ().sender_node_id) {
+
+std::cout<<"pred before " << predecessor_id << std::endl;
 
           predecessor_id = message.GetDepartureReq ().conn_node_id;
           predecessor_ip_address = message.GetDepartureReq ().conn_node_ip_address;
 
+std::cout<<"pred after " << predecessor_id << std::endl;
+
 }
 
         else if (successor_id == message.GetDepartureReq ().sender_node_id) {
-
+std::cout<<"succ before " << successor_id << std::endl;
           successor_id = message.GetDepartureReq ().conn_node_id;
-          successor_ip_address = message.GetDepartureReq ().conn_node_ip_address; }
+          successor_ip_address = message.GetDepartureReq ().conn_node_ip_address; 
+std::cout<<"succ after " << successor_id << std::endl;
+}
 
-    
+
 }
 
 void
