@@ -97,6 +97,8 @@ class GUChord : public GUApplication
     Timer stabilize_timer;
     Time stabilize_timeout;
     bool in_ring;
+    bool show_next_stabilize;
+    int counter;
 };
 
 #endif

@@ -68,6 +68,9 @@ GUChord::DoDispose ()
 void
 GUChord::StartApplication (void)
 {
+
+  counter = 0;
+
   if (m_socket == 0)
     { 
       TypeId tid = TypeId::LookupByName ("ns3::UdpSocketFactory");
@@ -221,6 +224,16 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
 void
 GUChord::RunStabilize ()
 {
+
+  counter += 1;
+
+  if(counter%750 == 0)
+        show_next_stabilize = true;
+  else
+        show_next_stabilize = false;
+
+
+
     // send stabilize to your successor
     if (in_ring == true)
     {
@@ -230,6 +243,12 @@ GUChord::RunStabilize ()
        uint32_t transactionId = GetNextTransactionId ();
        GUChordMessage resp = GUChordMessage (GUChordMessage::STABILIZE_REQ, transactionId);
        resp.SetStabilizeReq (my_id, my_ip);
+
+       if (show_next_stabilize == true) {
+
+         CHORD_LOG ("Sending STABILIZE_REQ to Node: " << ReverseLookup(successor_ip_address) << " IP: " << successor_ip_address << " transactionId: " << transactionId);
+
+        }
 
        Ptr<Packet> packet = Create<Packet> ();
        packet->AddHeader (resp);
@@ -513,6 +532,13 @@ GUChord::ProcessStabilizeReq (GUChordMessage message, Ipv4Address sourceAddress,
     // only nodes that think you are their successor will send you these messages
     uint32_t sender_id = atoi(ReverseLookup(sourceAddress).c_str());
 
+    if (show_next_stabilize == true) {
+
+        std::string fromNode = ReverseLookup (sourceAddress);
+        CHORD_LOG ("Received STABILIZE_REQ, From Node: " << fromNode);
+    
+    }
+
     // if sourceAddress is > predecessor, set predecessor = sourceAddress
     // think about the edge case here
     if (sender_id >= predecessor_id) // or if don't have predecessor yet?
@@ -536,6 +562,15 @@ GUChord::ProcessStabilizeRsp (GUChordMessage message, Ipv4Address sourceAddress,
     // if message.getStabilizeReq().predecessor != me, then make them your new successor
 
     Ipv4Address my_ip = GetLocalAddress();
+
+    if (show_next_stabilize == true) {
+
+        std::string fromNode = ReverseLookup (sourceAddress);
+        CHORD_LOG ("Received STABILIZE_RSP, From Node: " << fromNode);
+        
+        show_next_stabilize = false;
+    
+    }
 
     // check to see if m_mainAddress exists?
     uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
