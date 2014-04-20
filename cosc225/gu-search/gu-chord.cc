@@ -116,7 +116,8 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
   
   // let's print out the command
   //std::cout << "In Process Command" << std::endl;
-  std::cout << "The command is " << my_id << " GUSEARCH CHORD " << command;
+  std::cout << "**************************************************************************" << std::endl;
+  std::cout << "\nThe command is " << my_id << " GUSEARCH CHORD " << command;
 
   if (command == "join" || command == "JOIN")
     {
@@ -127,6 +128,7 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
           sin >> nodeNumber;
 
           std::cout << " " << nodeNumber << std::endl;
+          std::cout << "\n**************************************************************************";
 
           Ipv4Address destAddress = ResolveNodeIpAddress (nodeNumber);
           uint32_t transactionId = GetNextTransactionId ();
@@ -148,23 +150,30 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
 
           else {
 
+          CHORD_LOG ("Sending JOIN_REQ to Node: " << ReverseLookup(destAddress) << " IP: " << destAddress << " transactionId: " << transactionId);
+
           Ptr<Packet> packet = Create<Packet> ();
           GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::JOIN_REQ, transactionId );
 
           guChordMessage.SetJoinReq (my_id, my_ip, recipient_id, destAddress);
           packet->AddHeader (guChordMessage);
-          m_socket->SendTo (packet, 0 , InetSocketAddress (destAddress, m_appPort)); }
+          m_socket->SendTo (packet, 0 , InetSocketAddress (destAddress, m_appPort)); 
+          
+          }
         
     }
   else if (command == "leave" || command == "LEAVE")
     {
           std::cout << std::endl;
+          std::cout << "\n**************************************************************************";
 
           uint32_t transactionId = GetNextTransactionId ();
           Ipv4Address my_ip = GetLocalAddress();
           uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
 
           in_ring = false;
+
+          CHORD_LOG ("Sending DEPARTURE_REQ to Node: " << ReverseLookup(successor_ip_address) << " IP: " << successor_ip_address << " transactionId: " << transactionId);
 
           Ptr<Packet> packet = Create<Packet> ();
           GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::DEPARTURE_REQ, transactionId );
@@ -173,6 +182,7 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
           packet->AddHeader (guChordMessage);
           m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, m_appPort));
 
+          CHORD_LOG ("Sending DEPARTURE_REQ to Node: " << ReverseLookup(predecessor_ip_address) << " IP: " << predecessor_ip_address << " transactionId: " << transactionId);
 
           Ptr<Packet> packet2 = Create<Packet> ();
           GUChordMessage guChordMessage2 = GUChordMessage        (GUChordMessage::DEPARTURE_REQ, transactionId );
@@ -188,10 +198,15 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
     {
 
           std::cout << std::endl;
+          std::cout << "\n**************************************************************************";
 
           uint32_t transactionId = GetNextTransactionId ();
           Ipv4Address my_ip = GetLocalAddress();
           uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
+
+          CHORD_LOG ("\nRingState<" << my_id << ">: Pred<" << predecessor_id << ", " << predecessor_ip_address << ">, Succ<" << successor_id << ", " << successor_ip_address << ">");
+
+          CHORD_LOG ("Sending RING_STATE_PING to Node: " << ReverseLookup(successor_ip_address) << " IP: " << successor_ip_address << " transactionId: " << transactionId);
 
           Ptr<Packet> packet = Create<Packet> ();
           GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::RING_STATE_PING, transactionId );
@@ -212,7 +227,8 @@ GUChord::RunStabilize ()
 
        Ipv4Address my_ip = GetLocalAddress();
        uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
-       GUChordMessage resp = GUChordMessage (GUChordMessage::STABILIZE_REQ, GetNextTransactionId ());
+       uint32_t transactionId = GetNextTransactionId ();
+       GUChordMessage resp = GUChordMessage (GUChordMessage::STABILIZE_REQ, transactionId);
        resp.SetStabilizeReq (my_id, my_ip);
 
        Ptr<Packet> packet = Create<Packet> ();
@@ -344,17 +360,41 @@ GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint
     // check to see if m_mainAddress exists?
 
     uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
+
+    std::string fromNode = ReverseLookup (sourceAddress);
+    CHORD_LOG ("Received JOIN_REQ, From Node: " << fromNode);
+
     if (my_id < request_node_id && request_node_id < successor_id)
-    {       
+    {     
+
+        uint32_t transactionId = GetNextTransactionId ();
+
+        CHORD_LOG ("Sending JOIN_RSP to Node: " << ReverseLookup(successor_ip_address) << " IP: " << successor_ip_address << " transactionId: " << transactionId);
+
+        message.SetTransactionId(transactionId); 
+  
         SendJoinRsp(message, sourcePort);
+
     }
     else if (request_node_id > my_id && my_id > successor_id)
     {
+
+        uint32_t transactionId = GetNextTransactionId ();
+
+        CHORD_LOG ("Sending JOIN_RSP to Node: " << ReverseLookup(successor_ip_address) << " IP: " << successor_ip_address << " transactionId: " << transactionId);
+
+        message.SetTransactionId(transactionId);       
+
         SendJoinRsp(message, sourcePort);
     }
     else if (successor_id == my_id)
     {
-        GUChordMessage resp = GUChordMessage (GUChordMessage::JOIN_RSP, message.GetTransactionId());
+
+        uint32_t transactionId = GetNextTransactionId ();
+
+        CHORD_LOG ("Sending JOIN_RSP to Node: " << ReverseLookup(sourceAddress) << " IP: " << sourceAddress << " transactionId: " << transactionId);
+
+        GUChordMessage resp = GUChordMessage (GUChordMessage::JOIN_RSP, transactionId);
         resp.SetJoinRsp (message.GetJoinReq(), successor_id, successor_ip_address);
         Ptr<Packet> packet = Create<Packet> ();
         packet->AddHeader (resp);
@@ -362,15 +402,20 @@ GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint
     }
     else
     {
+
         // need to keep searching so forward the message along
-        GUChordMessage resp = GUChordMessage (GUChordMessage::JOIN_REQ, message.GetTransactionId());
+
+        uint32_t transactionId = GetNextTransactionId ();
+
+        CHORD_LOG ("Sending JOIN_REQ to Node: " << ReverseLookup(successor_ip_address) << " IP: " << successor_ip_address << " transactionId: " << transactionId);
+
+        GUChordMessage resp = GUChordMessage (GUChordMessage::JOIN_REQ, transactionId);
         resp.SetJoinReq (message.GetJoinReq());
         Ptr<Packet> packet = Create<Packet> ();
         packet->AddHeader (resp);
         m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, sourcePort));
     }
 
-//RunStabilize();
 }
 
 void
@@ -386,6 +431,10 @@ GUChord::SendJoinRsp(GUChordMessage message, uint16_t sourcePort)
 void
 GUChord::ProcessJoinRsp (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
 {
+
+    std::string fromNode = ReverseLookup (sourceAddress);
+    CHORD_LOG ("Received JOIN_RSP, From Node: " << fromNode);    
+
     Ipv4Address my_ip = GetLocalAddress();
     // check to see if m_mainAddress exists?
     uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
@@ -393,7 +442,12 @@ GUChord::ProcessJoinRsp (GUChordMessage message, Ipv4Address sourceAddress, uint
     // if you are the landmark node, then send this information to the   request node
     if (my_id == message.GetJoinRsp().landmark_id)
     {
-        GUChordMessage resp = GUChordMessage (GUChordMessage::JOIN_RSP, message.GetTransactionId());
+
+        uint32_t transactionId = GetNextTransactionId ();
+
+        CHORD_LOG ("Sending JOIN_RSP to Node: " << ReverseLookup(message.GetJoinRsp().request_ip_address) << " IP: " << message.GetJoinRsp().request_ip_address << " transactionId: " << transactionId);        
+
+        GUChordMessage resp = GUChordMessage (GUChordMessage::JOIN_RSP, transactionId);
         resp.SetJoinRsp (message.GetJoinRsp());
         Ptr<Packet> packet = Create<Packet> ();
         packet->AddHeader (resp);
@@ -412,7 +466,12 @@ GUChord::ProcessJoinRsp (GUChordMessage message, Ipv4Address sourceAddress, uint
     else
     {
         // forward the message
-        GUChordMessage resp = GUChordMessage (GUChordMessage::JOIN_RSP, message.GetTransactionId());
+
+        uint32_t transactionId = GetNextTransactionId ();
+
+        CHORD_LOG ("Sending JOIN_RSP to Node: " << ReverseLookup(successor_ip_address) << " IP: " << successor_ip_address << " transactionId: " << transactionId);        
+
+        GUChordMessage resp = GUChordMessage (GUChordMessage::JOIN_RSP, transactionId);
         resp.SetJoinRsp (message.GetJoinRsp());
         Ptr<Packet> packet = Create<Packet> ();
         packet->AddHeader (resp);
@@ -428,6 +487,9 @@ GUChord::ProcessJoinRsp (GUChordMessage message, Ipv4Address sourceAddress, uint
 void
 GUChord::ProcessDepartureReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
 {
+
+        std::string fromNode = ReverseLookup (sourceAddress);
+        CHORD_LOG ("Received DEPARTURE_REQ, From Node: " << fromNode);
 
         if(predecessor_id == message.GetDepartureReq ().sender_node_id) {
 
@@ -489,15 +551,16 @@ void
 GUChord::ProcessRingStatePing (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
 {
 
+        std::string fromNode = ReverseLookup (sourceAddress);
+        CHORD_LOG ("Received RING_STATE_PING, From Node: " << fromNode);
+
         Ipv4Address my_ip = GetLocalAddress();
         uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
         uint32_t transactionId = GetNextTransactionId ();
 
-       /* CHORD_LOG ("RingState<" << my_id << ">: Pred<" << predecessor_id << ", " << predecessor_ip_address << ">, Succ<" << successor_id << ", " << successor_ip_address << ">");*/
-
-       std::cout << "RingState<" << my_id << ">: Pred<" << predecessor_id << ", " << predecessor_ip_address << ">, Succ<" << successor_id << ", " << successor_ip_address << ">" << std::endl;
-
         if (my_id != message.GetRingStatePing ().originator_node_id) {
+
+          CHORD_LOG ("\nRingState<" << my_id << ">: Pred<" << predecessor_id << ", " << predecessor_ip_address << ">, Succ<" << successor_id << ", " << successor_ip_address << ">");
 
           Ptr<Packet> packet = Create<Packet> ();
           GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::RING_STATE_PING, transactionId );
