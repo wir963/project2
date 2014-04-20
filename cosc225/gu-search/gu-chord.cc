@@ -70,6 +70,8 @@ GUChord::StartApplication (void)
 {
 
   counter = 0;
+  stabilization_messages = false;
+  show_next_stabilize = false;
 
   if (m_socket == 0)
     { 
@@ -219,18 +221,46 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
           m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, m_appPort));
 
     }
+
+    else if (command == "stable" || command == "STABLE") {
+
+        iterator++;
+        std::istringstream sin (*iterator);
+        std::string flag;
+        sin >> flag;
+
+        std::cout << " " << flag << std::endl;
+          std::cout << "\n**************************************************************************\n";
+
+        if(flag == "on" || flag == "ON")
+           stabilization_messages = true;
+
+        else if(flag == "off" || flag == "OFF"){
+           stabilization_messages = false;
+           counter = 1999; }
+
+        else
+           std::cout << "Invalid Command" << std::endl;
+                
+
+
+    }
 }
 
 void
 GUChord::RunStabilize ()
 {
 
-  counter += 1;
+    counter += 1;
 
-  if(counter%750 == 0)
-        show_next_stabilize = true;
-  else
-        show_next_stabilize = false;
+    if(stabilization_messages == true) {
+
+     if(counter%2000 == 0)
+           show_next_stabilize = true;
+     else
+           show_next_stabilize = false;
+
+    }
 
 
 
