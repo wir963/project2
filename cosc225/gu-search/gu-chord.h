@@ -23,6 +23,8 @@
 #include "ns3/gu-chord-message.h"
 #include "ns3/ping-request.h"
 
+#include <openssl/sha.h>
+
 #include "ns3/ipv4-address.h"
 #include <map>
 #include <set>
