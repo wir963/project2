@@ -577,6 +577,13 @@ GUChord::ProcessStabilizeReq (GUChordMessage message, Ipv4Address sourceAddress,
         predecessor_ip_address = sourceAddress;
     }
 
+    if (show_next_stabilize == true) {
+
+        std::string fromNode = ReverseLookup (sourceAddress);
+        CHORD_LOG ("Sending STABILIZE_RSP, to Node: " << fromNode);
+    
+    }
+
     // send a ProcessStabilizeRsp message with predecessor to the sender
     GUChordMessage resp = GUChordMessage (GUChordMessage::STABILIZE_RSP, message.GetTransactionId());
     resp.SetStabilizeRsp (predecessor_id, predecessor_ip_address);
