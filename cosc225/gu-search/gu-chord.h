@@ -24,6 +24,7 @@
 #include "ns3/ping-request.h"
 
 #include <openssl/sha.h>
+#include <gmp.h>
 
 #include "ns3/ipv4-address.h"
 #include <map>
@@ -35,6 +36,10 @@
 #include "ns3/timer.h"
 #include "ns3/uinteger.h"
 #include "ns3/boolean.h"
+
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 using namespace ns3;
 
@@ -102,6 +107,7 @@ class GUChord : public GUApplication
     bool show_next_stabilize;
     bool stabilization_messages;
     int counter;
+    std::string node_key;
 };
 
 #endif

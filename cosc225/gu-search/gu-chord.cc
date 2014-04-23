@@ -22,6 +22,8 @@
 #include "ns3/random-variable.h"
 #include "ns3/inet-socket-address.h"
 
+#include <sstream>
+
 using namespace ns3;
 
 TypeId
@@ -73,6 +75,33 @@ GUChord::StartApplication (void)
   stabilization_messages = false;
   show_next_stabilize = false;
 
+  int ip_int = 0;
+
+  ip_int = GetLocalAddress().Get();
+
+  std::stringstream strs;
+  strs << ip_int;
+  std::string ip_string = strs.str();
+  char const* ip_char_star = ip_string.c_str();
+
+  unsigned char const* ip_char_star_2 = NULL;
+
+  ip_char_star_2 = reinterpret_cast<unsigned char const *>(ip_char_star);
+
+  unsigned char gmp_input[20];
+  
+  SHA1(ip_char_star_2, strlen(ip_char_star), gmp_input);
+
+  char * pre_node_key = NULL;
+
+  pre_node_key = reinterpret_cast<char*>(gmp_input);
+
+  std::string pre_node_key_2(pre_node_key);
+
+  node_key = pre_node_key_2;
+
+  std::cout << node_key << std::endl;
+
   if (m_socket == 0)
     { 
       TypeId tid = TypeId::LookupByName ("ns3::UdpSocketFactory");
@@ -82,6 +111,9 @@ GUChord::StartApplication (void)
       m_socket->SetRecvCallback (MakeCallback (&GUChord::RecvMessage, this));
     }  
   
+  
+
+
   // Configure timers
   m_auditPingsTimer.SetFunction (&GUChord::AuditPings, this);
   // Start timers
