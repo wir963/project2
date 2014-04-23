@@ -25,6 +25,7 @@
 
 #include <openssl/sha.h>
 #include <stdio.h>
+#include <iomanip>
 
 #include "ns3/ipv4-address.h"
 #include <map>
@@ -107,8 +108,7 @@ class GUChord : public GUApplication
     bool show_next_stabilize;
     bool stabilization_messages;
     int counter;
-    //mpz_t node_key;
-    std::string node_key;
+    std::string node_key_hex
 };
 
 #endif

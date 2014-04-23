@@ -22,7 +22,12 @@
 #include "ns3/random-variable.h"
 #include "ns3/inet-socket-address.h"
 
+#include <vector>
+
 #include <sstream>
+
+#include <stdlib.h>
+//#include <stdio.h>
 
 using namespace ns3;
 
@@ -84,21 +89,24 @@ GUChord::StartApplication (void)
 
   ip_char_star_2 = reinterpret_cast<unsigned char const *>(ip_char_star);
 
-  unsigned char gmp_input[20];
+  unsigned char sha_input[20];
   
-  SHA1(ip_char_star_2, strlen(ip_char_star), gmp_input);
+  SHA1(ip_char_star_2, strlen(ip_char_star), sha_input);
 
-  node_key = "";
+  node_key_hex = "";
+  node_key_dec = 0;
 
   for (int i = 0; i < 20; i++) {
 
-        std::stringstream strys;
-        strys << printf("%02x", gmp_input[i]);
-        std::string temp = strys.str().substr(0,0);
+        std::ostringstream strys;
+        strys << std::hex << std::setfill('0') << std::setw(2)
+              << static_cast<int>(sha_input[i]);
+        std::string temp = strys.str();
 
-        node_key.append(temp);    
+        node_key_hex.append(temp);    
   }
 
+node_key_dec = htoi(node_key_hex.c_str());
 
   if (m_socket == 0)
     { 
@@ -108,8 +116,6 @@ GUChord::StartApplication (void)
       m_socket->Bind (local);
       m_socket->SetRecvCallback (MakeCallback (&GUChord::RecvMessage, this));
     }  
-  
-  
 
 
   // Configure timers
