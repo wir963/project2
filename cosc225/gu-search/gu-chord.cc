@@ -75,12 +75,8 @@ GUChord::StartApplication (void)
   stabilization_messages = false;
   show_next_stabilize = false;
 
-  int ip_int = 0;
-
-  ip_int = GetLocalAddress().Get();
-
   std::stringstream strs;
-  strs << ip_int;
+  strs << GetLocalAddress();
   std::string ip_string = strs.str();
   char const* ip_char_star = ip_string.c_str();
 
@@ -92,15 +88,17 @@ GUChord::StartApplication (void)
   
   SHA1(ip_char_star_2, strlen(ip_char_star), gmp_input);
 
-  char * pre_node_key = NULL;
+  node_key = "";
 
-  pre_node_key = reinterpret_cast<char*>(gmp_input);
+  for (int i = 0; i < 20; i++) {
 
-  std::string pre_node_key_2(pre_node_key);
+        std::stringstream strys;
+        strys << printf("%02x", gmp_input[i]);
+        std::string temp = strys.str().substr(0,0);
 
-  node_key = pre_node_key_2;
+        node_key.append(temp);    
+  }
 
-  std::cout << node_key << std::endl;
 
   if (m_socket == 0)
     { 
