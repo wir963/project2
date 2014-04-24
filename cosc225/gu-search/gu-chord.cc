@@ -27,7 +27,6 @@
 #include <sstream>
 
 #include <stdlib.h>
-//#include <stdio.h>
 
 using namespace ns3;
 
@@ -72,6 +71,40 @@ GUChord::DoDispose ()
   GUApplication::DoDispose ();
 }
 
+std::string
+GUChord::ipHash(Ipv4Address ip_address) 
+{
+
+    std::stringstream strs;
+    strs << ip_address;
+    std::string ip_string = strs.str();
+    char const* ip_char_star = ip_string.c_str();
+
+    unsigned char const* ip_char_star_2 = NULL;
+
+    ip_char_star_2 = reinterpret_cast<unsigned char const *>(ip_char_star);
+
+    unsigned char sha_input[20];
+  
+    SHA1(ip_char_star_2, strlen(ip_char_star), sha_input);
+
+    std::string node_key_hex = "";
+
+    for (int i = 0; i < 20; i++) {
+
+        std::ostringstream strys;
+        strys << std::hex << std::setfill('0') << std::setw(2)
+              << static_cast<int>(sha_input[i]);
+        std::string temp = strys.str();
+
+        node_key_hex.append(temp);    
+    }
+
+    return node_key_hex;
+
+
+}
+
 void
 GUChord::StartApplication (void)
 {
@@ -80,33 +113,10 @@ GUChord::StartApplication (void)
   stabilization_messages = false;
   show_next_stabilize = false;
 
-  std::stringstream strs;
-  strs << GetLocalAddress();
-  std::string ip_string = strs.str();
-  char const* ip_char_star = ip_string.c_str();
+  my_node_key_hex = "";
 
-  unsigned char const* ip_char_star_2 = NULL;
-
-  ip_char_star_2 = reinterpret_cast<unsigned char const *>(ip_char_star);
-
-  unsigned char sha_input[20];
-  
-  SHA1(ip_char_star_2, strlen(ip_char_star), sha_input);
-
-  node_key_hex = "";
-  node_key_dec = 0;
-
-  for (int i = 0; i < 20; i++) {
-
-        std::ostringstream strys;
-        strys << std::hex << std::setfill('0') << std::setw(2)
-              << static_cast<int>(sha_input[i]);
-        std::string temp = strys.str();
-
-        node_key_hex.append(temp);    
-  }
-
-node_key_dec = htoi(node_key_hex.c_str());
+  my_node_key_hex = ipHash(GetLocalAddress());
+  std::cout << "Node: " << atoi(ReverseLookup(GetLocalAddress()).c_str()) << my_node_key_hex << std::endl;
 
   if (m_socket == 0)
     { 
@@ -155,8 +165,6 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
   Ipv4Address my_ip = GetLocalAddress();
   uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
   
-  // let's print out the command
-  //std::cout << "In Process Command" << std::endl;
   std::cout << "**************************************************************************" << std::endl;
   std::cout << "\nThe command is " << my_id << " GUSEARCH CHORD " << command;
 
@@ -177,13 +185,17 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
           Ipv4Address my_ip = GetLocalAddress();
           uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
           uint32_t recipient_id = atoi(nodeNumber.c_str());
+          std::string recipient_node_key_hex = ipHash(destAddress);
 
-          if(recipient_id == my_id) {
+
+          if(recipient_node_key_hex.compare(my_node_key_hex) == 0) {
 
                 successor_id = my_id;
                 successor_ip_address = my_ip;
+                successor_node_key_hex = my_node_key_hex;
                 predecessor_id = my_id;
                 predecessor_ip_address = my_ip;
+                predecessor_node_key_hex = my_node_key_hex;
                 
                 in_ring = true;
 
@@ -245,9 +257,9 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
           Ipv4Address my_ip = GetLocalAddress();
           uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
 
-          CHORD_LOG ("\nRingState<" << my_id << ">: Pred<" << predecessor_id << ", " << predecessor_ip_address << ">, Succ<" << successor_id << ", " << successor_ip_address << ">");
+          CHORD_LOG ("\nRingState<" << my_id << ">: Pred<" << predecessor_id << ", " << predecessor_node_key_hex << ">, Succ<" << successor_id << ", " << successor_node_key_hex << ">");
 
-          CHORD_LOG ("Sending RING_STATE_PING to Node: " << ReverseLookup(successor_ip_address) << " IP: " << successor_ip_address << " transactionId: " << transactionId);
+          //CHORD_LOG ("Sending RING_STATE_PING to Node: " << ReverseLookup(successor_ip_address) << " IP: " << successor_ip_address << " transactionId: " << transactionId);
 
           Ptr<Packet> packet = Create<Packet> ();
           GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::RING_STATE_PING, transactionId );
@@ -432,24 +444,12 @@ void
 GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
 {
 
-    // will only get this if you are the landmark node
-    // need to figure out which node should be the successor for the sender/ new node
-    
-    // then need to send the IP Address of this node to the sender
-    // landmark_node is the node that received the original message
-    // request_node is the node that asked to join the network
-
-    uint32_t request_node_id = message.GetJoinReq().request_id;
-    Ipv4Address my_ip = GetLocalAddress();
-
-    // check to see if m_mainAddress exists?
-
-    uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
-
     std::string fromNode = ReverseLookup (sourceAddress);
     CHORD_LOG ("Received JOIN_REQ, From Node: " << fromNode);
 
-    if (my_id < request_node_id && request_node_id < successor_id)
+    std::string request_node_key_hex = ipHash(message.GetJoinReq().request_ip_address);
+
+    if (my_node_key_hex.compare(request_node_key_hex) < 0 && request_node_key_hex.compare(successor_node_key_hex) < 0)
     {     
 
         uint32_t transactionId = GetNextTransactionId ();
@@ -461,7 +461,7 @@ GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint
         SendJoinRsp(message, sourcePort);
 
     }
-    else if (request_node_id > my_id && my_id > successor_id)
+    else if (request_node_key_hex.compare(my_node_key_hex) > 0 && my_node_key_hex.compare(successor_node_key_hex) > 0)
     {
 
         uint32_t transactionId = GetNextTransactionId ();
@@ -472,7 +472,19 @@ GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint
 
         SendJoinRsp(message, sourcePort);
     }
-    else if (successor_id == my_id)
+
+    else if (request_node_key_hex.compare(successor_node_key_hex) < 0 && my_node_key_hex.compare(successor_node_key_hex) > 0)
+    {
+
+        uint32_t transactionId = GetNextTransactionId ();
+
+        CHORD_LOG ("Sending JOIN_RSP to Node: " << ReverseLookup(successor_ip_address) << " IP: " << successor_ip_address << " transactionId: " << transactionId);
+
+        message.SetTransactionId(transactionId);       
+
+        SendJoinRsp(message, sourcePort);
+    }
+    else if (successor_node_key_hex.compare(my_node_key_hex) == 0)
     {
 
         uint32_t transactionId = GetNextTransactionId ();
@@ -484,8 +496,11 @@ GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint
         Ptr<Packet> packet = Create<Packet> ();
         packet->AddHeader (resp);
         m_socket->SendTo (packet, 0 , InetSocketAddress (sourceAddress, sourcePort));
+
     }
+
     else
+
     {
 
         // need to keep searching so forward the message along
@@ -506,11 +521,13 @@ GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint
 void
 GUChord::SendJoinRsp(GUChordMessage message, uint16_t sourcePort)
 {
+
     GUChordMessage resp = GUChordMessage (GUChordMessage::JOIN_RSP, message.GetTransactionId());
     resp.SetJoinRsp (message.GetJoinReq(), successor_id, successor_ip_address);
     Ptr<Packet> packet = Create<Packet> ();
     packet->AddHeader (resp);
     m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, sourcePort));
+
 }
 
 void
@@ -520,12 +537,11 @@ GUChord::ProcessJoinRsp (GUChordMessage message, Ipv4Address sourceAddress, uint
     std::string fromNode = ReverseLookup (sourceAddress);
     CHORD_LOG ("Received JOIN_RSP, From Node: " << fromNode);    
 
-    Ipv4Address my_ip = GetLocalAddress();
-    // check to see if m_mainAddress exists?
-    uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
+    std::string landmark_node_key_hex = ipHash(message.GetJoinRsp().landmark_ip_address);
+    std::string request_node_key_hex = ipHash(message.GetJoinRsp().request_ip_address);
     
     // if you are the landmark node, then send this information to the   request node
-    if (my_id == message.GetJoinRsp().landmark_id)
+    if (my_node_key_hex.compare(landmark_node_key_hex) == 0)
     {
 
         uint32_t transactionId = GetNextTransactionId ();
@@ -540,17 +556,18 @@ GUChord::ProcessJoinRsp (GUChordMessage message, Ipv4Address sourceAddress, uint
     }
 
     // if you are the original requester
-    else if (my_id == message.GetJoinRsp().request_id)
-    {
+    else if (my_node_key_hex.compare(request_node_key_hex) == 0)
+    { 
+
         successor_ip_address = message.GetJoinRsp().successor_ip_address;
         successor_id = message.GetJoinRsp().successor_id;
-        // joined the tree!
+        successor_node_key_hex = ipHash(message.GetJoinRsp().successor_ip_address);
+
 
         in_ring = true;
     }
     else
     {
-        // forward the message
 
         uint32_t transactionId = GetNextTransactionId ();
 
@@ -562,10 +579,6 @@ GUChord::ProcessJoinRsp (GUChordMessage message, Ipv4Address sourceAddress, uint
         packet->AddHeader (resp);
         m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, sourcePort));
     }
-    
-    // otherwise, forward it along to your successor
-    // set successor = message.getJoinRsp().successor_ip_address
-    // will successor be a member of this class?
 
 }
 
@@ -576,17 +589,21 @@ GUChord::ProcessDepartureReq (GUChordMessage message, Ipv4Address sourceAddress,
         std::string fromNode = ReverseLookup (sourceAddress);
         CHORD_LOG ("Received DEPARTURE_REQ, From Node: " << fromNode);
 
-        if(predecessor_id == message.GetDepartureReq ().sender_node_id) {
+        std::string sender_node_key_hex = ipHash(message.GetDepartureReq().sender_node_ip_address);
+
+        if(predecessor_node_key_hex.compare(sender_node_key_hex) == 0) {
 
           predecessor_id = message.GetDepartureReq ().conn_node_id;
           predecessor_ip_address = message.GetDepartureReq ().conn_node_ip_address;
+          predecessor_node_key_hex = ipHash(message.GetDepartureReq ().conn_node_ip_address);
 
         }
 
-        else if (successor_id == message.GetDepartureReq ().sender_node_id) {
+        else if (successor_node_key_hex.compare(sender_node_key_hex) == 0) {
 
           successor_id = message.GetDepartureReq ().conn_node_id;
-          successor_ip_address = message.GetDepartureReq ().conn_node_ip_address; 
+          successor_ip_address = message.GetDepartureReq ().conn_node_ip_address;
+          successor_node_key_hex = ipHash(message.GetDepartureReq ().conn_node_ip_address); 
 
         }
 
@@ -594,9 +611,8 @@ GUChord::ProcessDepartureReq (GUChordMessage message, Ipv4Address sourceAddress,
 
 void
 GUChord::ProcessStabilizeReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
-{
-    // only nodes that think you are their successor will send you these messages
-    uint32_t sender_id = atoi(ReverseLookup(sourceAddress).c_str());
+{       
+    uint32_t sender_id = atoi(ReverseLookup(message.GetStabilizeReq().sender_node_ip_address).c_str());
 
     if (show_next_stabilize == true) {
 
@@ -605,12 +621,56 @@ GUChord::ProcessStabilizeReq (GUChordMessage message, Ipv4Address sourceAddress,
     
     }
 
-    // if sourceAddress is > predecessor, set predecessor = sourceAddress
-    // think about the edge case here
-    if (sender_id >= predecessor_id) // or if don't have predecessor yet?
+    std::string sender_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
+
+    if (yes == true && last_key == sender_node_key_hex)
     {
+        yes = false;
+    }
+
+    else if (sender_node_key_hex.compare(predecessor_node_key_hex) >= 0 && sender_node_key_hex.compare(my_node_key_hex) != 0)
+    {
+        yes = true;
+        last_key = predecessor_node_key_hex;        
+
         predecessor_id = sender_id;
-        predecessor_ip_address = sourceAddress;
+
+        predecessor_ip_address = message.GetStabilizeReq().sender_node_ip_address;
+        predecessor_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
+    }
+
+    else if (predecessor_node_key_hex.compare(my_node_key_hex) == 0) 
+    {
+
+        yes = true;
+        last_key = predecessor_node_key_hex;
+        predecessor_id = sender_id;
+        predecessor_ip_address = message.GetStabilizeReq().sender_node_ip_address;
+        predecessor_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
+
+    } 
+
+    else if (predecessor_node_key_hex.compare(my_node_key_hex) > 0 && sender_node_key_hex.compare(my_node_key_hex) < 0) 
+
+    {
+
+        yes = true;
+        last_key = predecessor_node_key_hex;
+        predecessor_id = sender_id;
+        predecessor_ip_address = message.GetStabilizeReq().sender_node_ip_address;
+        predecessor_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
+
+    }
+
+    else if (predecessor_node_key_hex.compare(" ") == -1)
+    { 
+
+        yes = true;
+        last_key = predecessor_node_key_hex;
+        predecessor_id = sender_id;
+        predecessor_ip_address = message.GetStabilizeReq().sender_node_ip_address;
+        predecessor_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
+
     }
 
     if (show_next_stabilize == true) {
@@ -620,7 +680,6 @@ GUChord::ProcessStabilizeReq (GUChordMessage message, Ipv4Address sourceAddress,
     
     }
 
-    // send a ProcessStabilizeRsp message with predecessor to the sender
     GUChordMessage resp = GUChordMessage (GUChordMessage::STABILIZE_RSP, message.GetTransactionId());
     resp.SetStabilizeRsp (predecessor_id, predecessor_ip_address);
     Ptr<Packet> packet = Create<Packet> ();
@@ -631,10 +690,6 @@ GUChord::ProcessStabilizeReq (GUChordMessage message, Ipv4Address sourceAddress,
 void
 GUChord::ProcessStabilizeRsp (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
 {
-    // should have been sent by your successor
-    // if message.getStabilizeReq().predecessor != me, then make them your new successor
-
-    Ipv4Address my_ip = GetLocalAddress();
 
     if (show_next_stabilize == true) {
 
@@ -645,12 +700,14 @@ GUChord::ProcessStabilizeRsp (GUChordMessage message, Ipv4Address sourceAddress,
     
     }
 
-    // check to see if m_mainAddress exists?
-    uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
-    uint32_t node_id = message.GetStabilizeRsp().predecessor_node_id;
-    if (node_id != my_id) {
-        successor_id = node_id;
+    std::string pred_node_key_hex = ipHash(message.GetStabilizeRsp().predecessor_node_ip_address);
+
+    if (pred_node_key_hex.compare(my_node_key_hex) != 0 ) {
+
+        successor_id = message.GetStabilizeRsp().predecessor_node_id;
         successor_ip_address = message.GetStabilizeRsp().predecessor_node_ip_address;
+        successor_node_key_hex = pred_node_key_hex;
+
     }
     
 }
@@ -660,15 +717,17 @@ GUChord::ProcessRingStatePing (GUChordMessage message, Ipv4Address sourceAddress
 {
 
         std::string fromNode = ReverseLookup (sourceAddress);
-        CHORD_LOG ("Received RING_STATE_PING, From Node: " << fromNode);
+        //CHORD_LOG ("Received RING_STATE_PING, From Node: " << fromNode);
 
         Ipv4Address my_ip = GetLocalAddress();
         uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
         uint32_t transactionId = GetNextTransactionId ();
 
-        if (my_id != message.GetRingStatePing ().originator_node_id) {
+        std::string originator_node_key_hex = ipHash(message.GetRingStatePing().originator_node_ip_address);
 
-          CHORD_LOG ("\nRingState<" << my_id << ">: Pred<" << predecessor_id << ", " << predecessor_ip_address << ">, Succ<" << successor_id << ", " << successor_ip_address << ">");
+        if (my_node_key_hex.compare(originator_node_key_hex) != 0) {
+
+          CHORD_LOG ("\nRingState<" << my_id << ">: Pred<" << predecessor_id << ", " << predecessor_node_key_hex << ">, Succ<" << successor_id << ", " << successor_node_key_hex << ">");
 
           Ptr<Packet> packet = Create<Packet> ();
           GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::RING_STATE_PING, transactionId );

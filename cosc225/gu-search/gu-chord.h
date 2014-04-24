@@ -83,6 +83,8 @@ class GUChord : public GUApplication
     virtual void StartApplication (void);
     virtual void StopApplication (void);
 
+    std::string ipHash(Ipv4Address);
+
     uint32_t m_currentTransactionId;
     Ptr<Socket> m_socket;
     Time m_pingTimeout;
@@ -102,13 +104,22 @@ class GUChord : public GUApplication
     uint32_t predecessor_id;
     Ipv4Address successor_ip_address;
     Ipv4Address predecessor_ip_address;
+    std::string successor_node_key_hex;
+    std::string predecessor_node_key_hex;
+    
     Timer stabilize_timer;
     Time stabilize_timeout;
+
     bool in_ring;
     bool show_next_stabilize;
     bool stabilization_messages;
     int counter;
-    std::string node_key_hex
+
+    std::string my_node_key_hex;
+
+    std::string last_key;
+    bool yes;
+
 };
 
 #endif

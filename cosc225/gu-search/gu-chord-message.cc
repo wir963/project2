@@ -365,7 +365,6 @@ GUChordMessage::SetJoinReq (JoinReq joinRequest)
     {
       NS_ASSERT (m_messageType == JOIN_REQ);
     }
-  //m_message.joinReq = joinRequest;
 
     m_message.joinReq.request_id = joinRequest.request_id;
     m_message.joinReq.request_ip_address = joinRequest.request_ip_address;
@@ -450,7 +449,6 @@ GUChordMessage::SetJoinRsp (JoinRsp joinResponse)
     {
       NS_ASSERT (m_messageType == JOIN_RSP);
     }
-  //m_message.joinRsp = joinResponse;
     m_message.joinRsp.request_id = joinResponse.request_id;
     m_message.joinRsp.request_ip_address = joinResponse.request_ip_address;
     m_message.joinRsp.successor_id = joinResponse.successor_id;
