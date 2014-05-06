@@ -116,7 +116,7 @@ GUChord::StartApplication (void)
   my_node_key_hex = "";
 
   my_node_key_hex = ipHash(GetLocalAddress());
-  std::cout << "Node: " << atoi(ReverseLookup(GetLocalAddress()).c_str()) << my_node_key_hex << std::endl;
+  //std::cout << "Node: " << atoi(ReverseLookup(GetLocalAddress()).c_str()) << my_node_key_hex << std::endl;
 
   if (m_socket == 0)
     { 
