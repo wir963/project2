@@ -258,7 +258,7 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
           uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
 
           CHORD_LOG ("\nRingState<" << my_id << ">: Pred<" << predecessor_id << ", " << predecessor_node_key_hex << ">, Succ<" << successor_id << ", " << successor_node_key_hex << ">");
-          std::cout << "\nRingState<" << my_id << ">: Pred<" << predecessor_id << ", " << predecessor_node_key_hex << ">, Succ<" << successor_id << ", " << successor_node_key_hex << ">" << std::endl;
+
           //CHORD_LOG ("Sending RING_STATE_PING to Node: " << ReverseLookup(successor_ip_address) << " IP: " << successor_ip_address << " transactionId: " << transactionId);
 
           Ptr<Packet> packet = Create<Packet> ();
