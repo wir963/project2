@@ -911,7 +911,7 @@ GUChord::ProcessRingStatePing (GUChordMessage message, Ipv4Address sourceAddress
 void
 GUChord::ProcessFindSuccessorReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
 {
-std::cout << message.GetFindSuccessorReq().start_value_index << std::endl;
+
         std::string fromNode = ReverseLookup (sourceAddress);
         CHORD_LOG ("Received FIND_SUCCESSOR_REQ, From Node: " << fromNode);
 
@@ -1030,8 +1030,8 @@ GUChord::ProcessFindSuccessorRsp (GUChordMessage message, Ipv4Address sourceAddr
     finger_table.at(message.GetFindSuccessorRsp().start_value_index).finger_node_id = ReverseLookup(message.GetFindSuccessorRsp().successor_node_ip_address);
     finger_table.at(message.GetFindSuccessorRsp().start_value_index).finger_key_hash = successor_node_key_hex;
     
-    if (message.GetFindSuccessorRsp().start_value_index < 160) {
-        FingerInit(message.GetFindSuccessorRsp().start_value_index + 1);
+    if (message.GetFindSuccessorRsp().start_value_index + 2 <= 160) {
+        FingerInit(message.GetFindSuccessorRsp().start_value_index + 2);
     }
     
  
