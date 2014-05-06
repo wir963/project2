@@ -258,7 +258,7 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
           uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
 
           CHORD_LOG ("\nRingState<" << my_id << ">: Pred<" << predecessor_id << ", " << predecessor_node_key_hex << ">, Succ<" << successor_id << ", " << successor_node_key_hex << ">");
-
+          std::cout << "\nRingState<" << my_id << ">: Pred<" << predecessor_id << ", " << predecessor_node_key_hex << ">, Succ<" << successor_id << ", " << successor_node_key_hex << ">" << std::endl;
           //CHORD_LOG ("Sending RING_STATE_PING to Node: " << ReverseLookup(successor_ip_address) << " IP: " << successor_ip_address << " transactionId: " << transactionId);
 
           Ptr<Packet> packet = Create<Packet> ();
@@ -622,7 +622,72 @@ GUChord::ProcessStabilizeReq (GUChordMessage message, Ipv4Address sourceAddress,
         CHORD_LOG ("Received STABILIZE_REQ, From Node: " << fromNode);
     
     }
+    std::string sender_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
 
+    if (yes == true && last_key == sender_node_key_hex)
+    {
+        yes = false;
+    }
+
+    else if (sender_node_key_hex.compare(predecessor_node_key_hex) >= 0 && sender_node_key_hex.compare(my_node_key_hex) != 0)
+    {
+        yes = true;
+        last_key = predecessor_node_key_hex;
+
+        predecessor_id = sender_id;
+
+        predecessor_ip_address = message.GetStabilizeReq().sender_node_ip_address;
+        predecessor_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
+    }
+
+    else if (predecessor_node_key_hex.compare(my_node_key_hex) == 0)
+    {
+
+        yes = true;
+        last_key = predecessor_node_key_hex;
+        predecessor_id = sender_id;
+        predecessor_ip_address = message.GetStabilizeReq().sender_node_ip_address;
+        predecessor_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
+
+    }
+
+    else if (predecessor_node_key_hex.compare(my_node_key_hex) > 0 && sender_node_key_hex.compare(my_node_key_hex) < 0)
+
+    {
+
+        yes = true;
+        last_key = predecessor_node_key_hex;
+        predecessor_id = sender_id;
+        predecessor_ip_address = message.GetStabilizeReq().sender_node_ip_address;
+        predecessor_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
+
+    }
+
+    else if (predecessor_node_key_hex.compare(" ") == -1)
+    {
+
+        yes = true;
+        last_key = predecessor_node_key_hex;
+        predecessor_id = sender_id;
+        predecessor_ip_address = message.GetStabilizeReq().sender_node_ip_address;
+        predecessor_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
+
+    }
+
+    if (show_next_stabilize == true) {
+
+        std::string fromNode = ReverseLookup (sourceAddress);
+        CHORD_LOG ("Sending STABILIZE_RSP, to Node: " << fromNode);
+    
+    }
+
+    GUChordMessage resp = GUChordMessage (GUChordMessage::STABILIZE_RSP, message.GetTransactionId());
+    resp.SetStabilizeRsp (predecessor_id, predecessor_ip_address);
+    Ptr<Packet> packet = Create<Packet> ();
+    packet->AddHeader (resp);
+    m_socket->SendTo (packet, 0 , InetSocketAddress (sourceAddress, sourcePort));
+
+/*
     std::string sender_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
     // obvious case
     if (sender_node_key_hex.compare(my_node_key_hex) < 0 && sender_node_key_hex.compare(predecessor_node_key_hex) > 0)
@@ -670,6 +735,8 @@ GUChord::ProcessStabilizeReq (GUChordMessage message, Ipv4Address sourceAddress,
     Ptr<Packet> packet = Create<Packet> ();
     packet->AddHeader (resp);
     m_socket->SendTo (packet, 0 , InetSocketAddress (sourceAddress, sourcePort));
+
+*/
 }
 
 void
