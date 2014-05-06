@@ -258,7 +258,7 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
           uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
 
           CHORD_LOG ("\nRingState<" << my_id << ">: Pred<" << predecessor_id << ", " << predecessor_node_key_hex << ">, Succ<" << successor_id << ", " << successor_node_key_hex << ">");
-
+          std::cout << "\nRingState<" << my_id << ">: Pred<" << predecessor_id << ", " << predecessor_node_key_hex << ">, Succ<" << successor_id << ", " << successor_node_key_hex << ">" << std::endl;
           //CHORD_LOG ("Sending RING_STATE_PING to Node: " << ReverseLookup(successor_ip_address) << " IP: " << successor_ip_address << " transactionId: " << transactionId);
 
           Ptr<Packet> packet = Create<Packet> ();
@@ -448,7 +448,7 @@ GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint
     CHORD_LOG ("Received JOIN_REQ, From Node: " << fromNode);
 
     std::string request_node_key_hex = ipHash(message.GetJoinReq().request_ip_address);
-
+    // request hash is greater than my hash but less than my successor's hash - obvious case
     if (my_node_key_hex.compare(request_node_key_hex) < 0 && request_node_key_hex.compare(successor_node_key_hex) < 0)
     {     
 
@@ -461,6 +461,8 @@ GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint
         SendJoinRsp(message, sourcePort);
 
     }
+    // my hash is greater than my successor's hash AND request hash is greater my hash
+    // --> adding the biggest hash to the ring
     else if (request_node_key_hex.compare(my_node_key_hex) > 0 && my_node_key_hex.compare(successor_node_key_hex) > 0)
     {
 
@@ -472,7 +474,8 @@ GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint
 
         SendJoinRsp(message, sourcePort);
     }
-
+    // my hash is greater than my successor's hash AND request hash is less than successor's hash
+    // --> adding the smallest hash to the ring
     else if (request_node_key_hex.compare(successor_node_key_hex) < 0 && my_node_key_hex.compare(successor_node_key_hex) > 0)
     {
 
@@ -484,6 +487,7 @@ GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint
 
         SendJoinRsp(message, sourcePort);
     }
+    // only one node in the ring - obvious
     else if (successor_node_key_hex.compare(my_node_key_hex) == 0)
     {
 
@@ -500,9 +504,7 @@ GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint
     }
 
     else
-
     {
-
         // need to keep searching so forward the message along
 
         uint32_t transactionId = GetNextTransactionId ();
@@ -620,7 +622,6 @@ GUChord::ProcessStabilizeReq (GUChordMessage message, Ipv4Address sourceAddress,
         CHORD_LOG ("Received STABILIZE_REQ, From Node: " << fromNode);
     
     }
-
     std::string sender_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
 
     if (yes == true && last_key == sender_node_key_hex)
@@ -631,7 +632,7 @@ GUChord::ProcessStabilizeReq (GUChordMessage message, Ipv4Address sourceAddress,
     else if (sender_node_key_hex.compare(predecessor_node_key_hex) >= 0 && sender_node_key_hex.compare(my_node_key_hex) != 0)
     {
         yes = true;
-        last_key = predecessor_node_key_hex;        
+        last_key = predecessor_node_key_hex;
 
         predecessor_id = sender_id;
 
@@ -639,7 +640,7 @@ GUChord::ProcessStabilizeReq (GUChordMessage message, Ipv4Address sourceAddress,
         predecessor_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
     }
 
-    else if (predecessor_node_key_hex.compare(my_node_key_hex) == 0) 
+    else if (predecessor_node_key_hex.compare(my_node_key_hex) == 0)
     {
 
         yes = true;
@@ -648,9 +649,9 @@ GUChord::ProcessStabilizeReq (GUChordMessage message, Ipv4Address sourceAddress,
         predecessor_ip_address = message.GetStabilizeReq().sender_node_ip_address;
         predecessor_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
 
-    } 
+    }
 
-    else if (predecessor_node_key_hex.compare(my_node_key_hex) > 0 && sender_node_key_hex.compare(my_node_key_hex) < 0) 
+    else if (predecessor_node_key_hex.compare(my_node_key_hex) > 0 && sender_node_key_hex.compare(my_node_key_hex) < 0)
 
     {
 
@@ -663,7 +664,7 @@ GUChord::ProcessStabilizeReq (GUChordMessage message, Ipv4Address sourceAddress,
     }
 
     else if (predecessor_node_key_hex.compare(" ") == -1)
-    { 
+    {
 
         yes = true;
         last_key = predecessor_node_key_hex;
@@ -685,6 +686,57 @@ GUChord::ProcessStabilizeReq (GUChordMessage message, Ipv4Address sourceAddress,
     Ptr<Packet> packet = Create<Packet> ();
     packet->AddHeader (resp);
     m_socket->SendTo (packet, 0 , InetSocketAddress (sourceAddress, sourcePort));
+
+/*
+    std::string sender_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
+    // obvious case
+    if (sender_node_key_hex.compare(my_node_key_hex) < 0 && sender_node_key_hex.compare(predecessor_node_key_hex) > 0)
+    {
+        predecessor_id = sender_id;
+        predecessor_ip_address = message.GetStabilizeReq().sender_node_ip_address;
+        predecessor_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
+    }
+    // only one node in the network case
+    else if (my_node_key_hex.compare(predecessor_node_key_hex) == 0)
+    {
+        predecessor_id = sender_id;
+        predecessor_ip_address = message.GetStabilizeReq().sender_node_ip_address;
+        predecessor_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
+    }
+
+    else if (my_node_key_hex.compare(predecessor_node_key_hex) < 0 && sender_node_key_hex.compare(predecessor_node_key_hex) > 0 )
+    {
+        predecessor_id = sender_id;
+        predecessor_ip_address = message.GetStabilizeReq().sender_node_ip_address;
+        predecessor_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
+    }
+    else if (my_node_key_hex.compare(predecessor_node_key_hex) < 0 && sender_node_key_hex.compare(my_node_key_hex) < 0)
+    {
+        predecessor_id = sender_id;
+        predecessor_ip_address = message.GetStabilizeReq().sender_node_ip_address;
+        predecessor_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
+    }
+    else if (predecessor_node_key_hex.compare(" ") == -1)
+    { 
+        predecessor_id = sender_id;
+        predecessor_ip_address = message.GetStabilizeReq().sender_node_ip_address;
+        predecessor_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
+    }
+
+    if (show_next_stabilize == true) {
+
+        std::string fromNode = ReverseLookup (sourceAddress);
+        CHORD_LOG ("Sending STABILIZE_RSP, to Node: " << fromNode);
+    
+    }
+
+    GUChordMessage resp = GUChordMessage (GUChordMessage::STABILIZE_RSP, message.GetTransactionId());
+    resp.SetStabilizeRsp (predecessor_id, predecessor_ip_address);
+    Ptr<Packet> packet = Create<Packet> ();
+    packet->AddHeader (resp);
+    m_socket->SendTo (packet, 0 , InetSocketAddress (sourceAddress, sourcePort));
+
+*/
 }
 
 void
