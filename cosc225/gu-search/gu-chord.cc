@@ -188,7 +188,13 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
           std::string recipient_node_key_hex = ipHash(destAddress);
 
 
-          if(recipient_node_key_hex.compare(my_node_key_hex) == 0) {
+          mpz_t recipient_key_gmp;
+          mpz_init_set_str(recipient_key_gmp, recipient_node_key_hex.c_str() , 16);
+  
+          mpz_t my_key_gmp;
+          mpz_init_set_str(my_key_gmp, my_node_key_hex.c_str() , 16);
+
+          if(mpz_cmp(recipient_key_gmp, my_key_gmp) == 0) {
 
                 successor_id = my_id;
                 successor_ip_address = my_ip;
@@ -293,6 +299,12 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
 
 
     }
+}
+
+void GUChord::SendChordLookup(std::string, uint32_t)
+{
+
+
 }
 
 void
@@ -448,8 +460,19 @@ GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint
     CHORD_LOG ("Received JOIN_REQ, From Node: " << fromNode);
 
     std::string request_node_key_hex = ipHash(message.GetJoinReq().request_ip_address);
+
+    mpz_t request_key_gmp;
+    mpz_init_set_str(request_key_gmp, request_node_key_hex.c_str() , 16);
+  
+    mpz_t my_key_gmp;
+    mpz_init_set_str(my_key_gmp, my_node_key_hex.c_str() , 16);
+
+    mpz_t successor_key_gmp;
+    mpz_init_set_str(successor_key_gmp, successor_node_key_hex.c_str() , 16);
+
     // request hash is greater than my hash but less than my successor's hash - obvious case
-    if (my_node_key_hex.compare(request_node_key_hex) < 0 && request_node_key_hex.compare(successor_node_key_hex) < 0)
+
+    if (mpz_cmp(my_key_gmp, request_key_gmp) < 0 && mpz_cmp(request_key_gmp, successor_key_gmp) < 0)
     {     
 
         uint32_t transactionId = GetNextTransactionId ();
@@ -463,7 +486,7 @@ GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint
     }
     // my hash is greater than my successor's hash AND request hash is greater my hash
     // --> adding the biggest hash to the ring
-    else if (request_node_key_hex.compare(my_node_key_hex) > 0 && my_node_key_hex.compare(successor_node_key_hex) > 0)
+    else if (mpz_cmp(my_key_gmp, successor_key_gmp) > 0 && mpz_cmp(request_key_gmp, my_key_gmp) > 0)
     {
 
         uint32_t transactionId = GetNextTransactionId ();
@@ -476,7 +499,7 @@ GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint
     }
     // my hash is greater than my successor's hash AND request hash is less than successor's hash
     // --> adding the smallest hash to the ring
-    else if (request_node_key_hex.compare(successor_node_key_hex) < 0 && my_node_key_hex.compare(successor_node_key_hex) > 0)
+    else if (mpz_cmp(my_key_gmp, successor_key_gmp) > 0 && mpz_cmp(request_key_gmp, successor_key_gmp) < 0)
     {
 
         uint32_t transactionId = GetNextTransactionId ();
@@ -488,7 +511,7 @@ GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint
         SendJoinRsp(message, sourcePort);
     }
     // only one node in the ring - obvious
-    else if (successor_node_key_hex.compare(my_node_key_hex) == 0)
+    else if (mpz_cmp(successor_key_gmp, my_key_gmp) == 0)
     {
 
         uint32_t transactionId = GetNextTransactionId ();
@@ -541,9 +564,19 @@ GUChord::ProcessJoinRsp (GUChordMessage message, Ipv4Address sourceAddress, uint
 
     std::string landmark_node_key_hex = ipHash(message.GetJoinRsp().landmark_ip_address);
     std::string request_node_key_hex = ipHash(message.GetJoinRsp().request_ip_address);
+
+    mpz_t request_key_gmp;
+    mpz_init_set_str(request_key_gmp, request_node_key_hex.c_str() , 16);
+  
+    mpz_t my_key_gmp;
+    mpz_init_set_str(my_key_gmp, my_node_key_hex.c_str() , 16);
+
+    mpz_t landmark_key_gmp;
+    mpz_init_set_str(landmark_key_gmp, landmark_node_key_hex.c_str() , 16);
+
     
     // if you are the landmark node, then send this information to the   request node
-    if (my_node_key_hex.compare(landmark_node_key_hex) == 0)
+    if (mpz_cmp(my_key_gmp, landmark_key_gmp) == 0)
     {
 
         uint32_t transactionId = GetNextTransactionId ();
@@ -558,7 +591,7 @@ GUChord::ProcessJoinRsp (GUChordMessage message, Ipv4Address sourceAddress, uint
     }
 
     // if you are the original requester
-    else if (my_node_key_hex.compare(request_node_key_hex) == 0)
+    else if (mpz_cmp(my_key_gmp, request_key_gmp) == 0)
     { 
 
         successor_ip_address = message.GetJoinRsp().successor_ip_address;
@@ -593,7 +626,19 @@ GUChord::ProcessDepartureReq (GUChordMessage message, Ipv4Address sourceAddress,
 
         std::string sender_node_key_hex = ipHash(message.GetDepartureReq().sender_node_ip_address);
 
-        if(predecessor_node_key_hex.compare(sender_node_key_hex) == 0) {
+        mpz_t sender_key_gmp;
+        mpz_init_set_str(sender_key_gmp, sender_node_key_hex.c_str() , 16);
+  
+        mpz_t my_key_gmp;
+        mpz_init_set_str(my_key_gmp, my_node_key_hex.c_str() , 16);
+
+        mpz_t predecessor_key_gmp;
+        mpz_init_set_str(predecessor_key_gmp, predecessor_node_key_hex.c_str() , 16);
+
+        mpz_t successor_key_gmp;        
+        mpz_init_set_str(successor_key_gmp, successor_node_key_hex.c_str() , 16);
+
+        if(mpz_cmp(predecessor_key_gmp, sender_key_gmp) == 0) {
 
           predecessor_id = message.GetDepartureReq ().conn_node_id;
           predecessor_ip_address = message.GetDepartureReq ().conn_node_ip_address;
@@ -601,7 +646,7 @@ GUChord::ProcessDepartureReq (GUChordMessage message, Ipv4Address sourceAddress,
 
         }
 
-        else if (successor_node_key_hex.compare(sender_node_key_hex) == 0) {
+        else if (mpz_cmp(successor_key_gmp, sender_key_gmp) == 0) {
 
           successor_id = message.GetDepartureReq ().conn_node_id;
           successor_ip_address = message.GetDepartureReq ().conn_node_ip_address;
@@ -624,28 +669,41 @@ GUChord::ProcessStabilizeReq (GUChordMessage message, Ipv4Address sourceAddress,
     }
 
     std::string sender_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
+
+    mpz_t sender_key_gmp;
+    mpz_init_set_str(sender_key_gmp, sender_node_key_hex.c_str() , 16);
+  
+    mpz_t my_key_gmp;
+    mpz_init_set_str(my_key_gmp, my_node_key_hex.c_str() , 16);
+
+    mpz_t predecessor_key_gmp;
+    mpz_init_set_str(predecessor_key_gmp, predecessor_node_key_hex.c_str() , 16);
+
+    mpz_t successor_key_gmp;        
+    mpz_init_set_str(successor_key_gmp, successor_node_key_hex.c_str() , 16);
+
     // obvious case
-    if (sender_node_key_hex.compare(my_node_key_hex) < 0 && sender_node_key_hex.compare(predecessor_node_key_hex) > 0)
+    if (mpz_cmp(sender_key_gmp, my_key_gmp) < 0 && mpz_cmp(sender_key_gmp, predecessor_key_gmp) > 0)
     {
         predecessor_id = sender_id;
         predecessor_ip_address = message.GetStabilizeReq().sender_node_ip_address;
         predecessor_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
     }
     // only one node in the network case
-    else if (my_node_key_hex.compare(predecessor_node_key_hex) == 0)
+    else if (mpz_cmp(my_key_gmp, predecessor_key_gmp) == 0)
     {
         predecessor_id = sender_id;
         predecessor_ip_address = message.GetStabilizeReq().sender_node_ip_address;
         predecessor_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
     }
 
-    else if (my_node_key_hex.compare(predecessor_node_key_hex) < 0 && sender_node_key_hex.compare(predecessor_node_key_hex) > 0 )
+    else if (mpz_cmp(my_key_gmp, predecessor_key_gmp) < 0 && mpz_cmp(sender_key_gmp, predecessor_key_gmp) > 0 )
     {
         predecessor_id = sender_id;
         predecessor_ip_address = message.GetStabilizeReq().sender_node_ip_address;
         predecessor_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
     }
-    else if (my_node_key_hex.compare(predecessor_node_key_hex) < 0 && sender_node_key_hex.compare(my_node_key_hex) < 0)
+    else if (mpz_cmp(my_key_gmp, predecessor_key_gmp) < 0 && mpz_cmp(sender_key_gmp, my_key_gmp) < 0)
     {
         predecessor_id = sender_id;
         predecessor_ip_address = message.GetStabilizeReq().sender_node_ip_address;
@@ -689,7 +747,13 @@ GUChord::ProcessStabilizeRsp (GUChordMessage message, Ipv4Address sourceAddress,
 
     std::string pred_node_key_hex = ipHash(message.GetStabilizeRsp().predecessor_node_ip_address);
 
-    if (pred_node_key_hex.compare(my_node_key_hex) != 0 ) {
+    mpz_t my_key_gmp;
+    mpz_init_set_str(my_key_gmp, my_node_key_hex.c_str() , 16);
+
+    mpz_t predecessor_key_gmp;
+    mpz_init_set_str(predecessor_key_gmp, pred_node_key_hex.c_str() , 16);
+
+    if (mpz_cmp(predecessor_key_gmp, my_key_gmp) != 0 ) {
 
         successor_id = message.GetStabilizeRsp().predecessor_node_id;
         successor_ip_address = message.GetStabilizeRsp().predecessor_node_ip_address;
@@ -712,7 +776,13 @@ GUChord::ProcessRingStatePing (GUChordMessage message, Ipv4Address sourceAddress
 
         std::string originator_node_key_hex = ipHash(message.GetRingStatePing().originator_node_ip_address);
 
-        if (my_node_key_hex.compare(originator_node_key_hex) != 0) {
+        mpz_t my_key_gmp;
+        mpz_init_set_str(my_key_gmp, my_node_key_hex.c_str() , 16);
+
+        mpz_t originator_key_gmp;
+        mpz_init_set_str(originator_key_gmp, originator_node_key_hex.c_str() , 16);
+
+        if (mpz_cmp(my_key_gmp, originator_key_gmp) != 0) {
 
           CHORD_LOG ("\nRingState<" << my_id << ">: Pred<" << predecessor_id << ", " << predecessor_node_key_hex << ">, Succ<" << successor_id << ", " << successor_node_key_hex << ">");
 

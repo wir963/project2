@@ -38,6 +38,8 @@
 #include "ns3/uinteger.h"
 #include "ns3/boolean.h"
 
+#include "gmp.h"
+
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -75,6 +77,8 @@ class GUChord : public GUApplication
 
     // From GUApplication
     virtual void ProcessCommand (std::vector<std::string> tokens);
+
+    void SendChordLookup(std::string, uint32_t);
     
   protected:
     virtual void DoDispose ();
@@ -116,9 +120,6 @@ class GUChord : public GUApplication
     int counter;
 
     std::string my_node_key_hex;
-
-    std::string last_key;
-    bool yes;
 
 };
 
