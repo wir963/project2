@@ -753,6 +753,8 @@ GUChordMessage::FindSuccessorReq::Serialize (Buffer::Iterator &start) const
     
     start.Write ((uint8_t *) (const_cast<char*> (start_value.c_str())), start_value.length());
 
+//std::cout << "SE" << start_value_index << std::endl;
+
     start.WriteU32 (start_value_index);
 }
 
@@ -769,6 +771,7 @@ GUChordMessage::FindSuccessorReq::Deserialize (Buffer::Iterator &start)
     free (str);
 
     start_value_index = start.ReadU32();
+//std::cout << "DE" << start_value_index << std::endl;
 
     return FindSuccessorReq::GetSerializedSize ();
 }
@@ -821,6 +824,7 @@ GUChordMessage::FindSuccessorRsp::Serialize (Buffer::Iterator &start) const
     start.WriteU16 (start_value.length ());
 
     start.Write ((uint8_t *) (const_cast<char*> (start_value.c_str())), start_value.length());
+std::cout << "SE" << start_value_index << std::endl;
 
     start.WriteU32 (start_value_index);
 }
@@ -838,6 +842,7 @@ GUChordMessage::FindSuccessorRsp::Deserialize (Buffer::Iterator &start)
     free (str);
 
     start_value_index = start.ReadU32();
+std::cout << "DE" << start_value_index << std::endl;
   
     return FindSuccessorRsp::GetSerializedSize ();
 }

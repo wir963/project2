@@ -992,6 +992,8 @@ GUChord::ProcessFindSuccessorRsp (GUChordMessage message, Ipv4Address sourceAddr
      temp_finger.finger_key_hash = successor_node_key_hex; 
     std::cout<<message.GetFindSuccessorRsp().start_value_index << std::endl;
     finger_table[message.GetFindSuccessorRsp().start_value_index].successor = temp_finger;
+//std::vector<FingerTableEntry>::iterator it = finger_table.find(finger_table.begin(), finger_table.end(), message.GetFindSuccessorRsp().start_value);
+//finger_table[*it].successor = temp_finger;
  
        
 }
