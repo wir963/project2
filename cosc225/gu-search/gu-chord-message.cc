@@ -84,6 +84,12 @@ GUChordMessage::GetSerializedSize (void) const
       case RING_STATE_PING:
         size += m_message.ringStatePing.GetSerializedSize ();
         break;
+      case FIND_SUCCESSOR_REQ:
+        size += m_message.findSuccessorReq.GetSerializedSize ();
+        break;
+      case FIND_SUCCESSOR_RSP:
+        size += m_message.findSuccessorRsp.GetSerializedSize ();
+        break;
       default:
         NS_ASSERT (false);
     }
@@ -124,6 +130,12 @@ GUChordMessage::Print (std::ostream &os) const
       case RING_STATE_PING:
         m_message.ringStatePing.Print (os);
         break;
+      case FIND_SUCCESSOR_REQ:
+        m_message.findSuccessorReq.Print (os);
+        break;
+      case FIND_SUCCESSOR_RSP:
+        m_message.findSuccessorRsp.Print (os);
+        break;
       default:
         break;  
     }
@@ -162,6 +174,12 @@ GUChordMessage::Serialize (Buffer::Iterator start) const
         break;
       case RING_STATE_PING:
         m_message.ringStatePing.Serialize (i);
+        break;
+      case FIND_SUCCESSOR_REQ:
+        m_message.findSuccessorReq.Serialize (i);
+        break;
+      case FIND_SUCCESSOR_RSP:
+        m_message.findSuccessorRsp.Serialize (i);
         break;
       default:
         NS_ASSERT (false);   
@@ -203,6 +221,12 @@ GUChordMessage::Deserialize (Buffer::Iterator start)
         break;
       case RING_STATE_PING:
         size += m_message.ringStatePing.Deserialize (i);
+        break;
+      case FIND_SUCCESSOR_REQ:
+        m_message.findSuccessorReq.Deserialize (i);
+        break;
+      case FIND_SUCCESSOR_RSP:
+        m_message.findSuccessorRsp.Deserialize (i);
         break;
       default:
         NS_ASSERT (false);
@@ -701,6 +725,144 @@ GUChordMessage::RingStatePing
 GUChordMessage::GetRingStatePing ()
 {
   return m_message.ringStatePing;
+}
+
+/* FIND_SUCCESSOR_REQ */
+
+uint32_t 
+GUChordMessage::FindSuccessorReq::GetSerializedSize (void) const
+{
+    uint32_t size;
+    size = IPV4_ADDRESS_SIZE + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint16_t) + start_value.length();
+    return size;
+}
+
+void
+GUChordMessage::FindSuccessorReq::Print (std::ostream &os) const
+{
+  //os << "StabilizeReq:: Message: " << stabilizeReqMessage << "\n";
+}
+
+void
+GUChordMessage::FindSuccessorReq::Serialize (Buffer::Iterator &start) const
+{
+    start.WriteU32 (originator_node_id);
+    start.WriteHtonU32(originator_node_ip_address.Get());
+
+    start.WriteU16 (start_value.length ());
+    
+    start.Write ((uint8_t *) (const_cast<char*> (start_value.c_str())), start_value.length());
+
+    start.WriteU32 (start_value_index);
+}
+
+uint32_t
+GUChordMessage::FindSuccessorReq::Deserialize (Buffer::Iterator &start)
+{  
+    originator_node_id = start.ReadU32();
+    originator_node_ip_address = Ipv4Address (start.ReadNtohU32 ());
+    
+    uint16_t length = start.ReadU16 ();
+    char* str = (char*) malloc (length);
+    start.Read ((uint8_t*)str, length);
+    start_value = std::string (str, length);
+    free (str);
+
+    start_value_index = start.ReadU32();
+
+    return FindSuccessorReq::GetSerializedSize ();
+}
+
+void
+GUChordMessage::SetFindSuccessorReq (uint32_t node_id, Ipv4Address ip_address, std::string start_value, uint32_t index)
+{
+  if (m_messageType == 0)
+    {
+      m_messageType = FIND_SUCCESSOR_REQ;
+    }
+  else
+    {
+      NS_ASSERT (m_messageType == FIND_SUCCESSOR_REQ);
+    }
+    m_message.findSuccessorReq.originator_node_id = node_id;
+    m_message.findSuccessorReq.originator_node_ip_address = ip_address;
+    m_message.findSuccessorReq.start_value = start_value;
+    m_message.findSuccessorReq.start_value_index = index;
+}
+
+GUChordMessage::FindSuccessorReq
+GUChordMessage::GetFindSuccessorReq ()
+{
+  return m_message.findSuccessorReq;
+}
+
+/* FIND_SUCCESSOR_RSP */
+
+uint32_t 
+GUChordMessage::FindSuccessorRsp::GetSerializedSize (void) const
+{
+    uint32_t size;
+    size = IPV4_ADDRESS_SIZE + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint16_t) + start_value.length();
+    return size;
+}
+
+void
+GUChordMessage::FindSuccessorRsp::Print (std::ostream &os) const
+{
+  //os << "StabilizeReq:: Message: " << stabilizeReqMessage << "\n";
+}
+
+void
+GUChordMessage::FindSuccessorRsp::Serialize (Buffer::Iterator &start) const
+{
+    start.WriteU32 (successor_node_id);
+    start.WriteHtonU32(successor_node_ip_address.Get());
+
+    start.WriteU16 (start_value.length ());
+
+    start.Write ((uint8_t *) (const_cast<char*> (start_value.c_str())), start_value.length());
+
+    start.WriteU32 (start_value_index);
+}
+
+uint32_t
+GUChordMessage::FindSuccessorRsp::Deserialize (Buffer::Iterator &start)
+{  
+    successor_node_id = start.ReadU32();
+    successor_node_ip_address = Ipv4Address (start.ReadNtohU32 ());
+    
+    uint16_t length = start.ReadU16 ();
+    char* str = (char*) malloc (length);
+    start.Read ((uint8_t*)str, length);
+    start_value = std::string (str, length);
+    free (str);
+
+    start_value_index = start.ReadU32();
+  
+    return FindSuccessorRsp::GetSerializedSize ();
+}
+
+void
+GUChordMessage::SetFindSuccessorRsp (uint32_t node_id, Ipv4Address ip_address, std::string start_value, uint32_t index)
+{
+  if (m_messageType == 0)
+    {
+      m_messageType = FIND_SUCCESSOR_RSP;
+    }
+  else
+    {
+      NS_ASSERT (m_messageType == FIND_SUCCESSOR_RSP);
+    }
+    m_message.findSuccessorRsp.successor_node_id = node_id;
+    m_message.findSuccessorRsp.successor_node_ip_address = ip_address;
+    m_message.findSuccessorReq.start_value = start_value;
+    m_message.findSuccessorReq.start_value_index = index;
+}
+
+GUChordMessage::FindSuccessorRsp
+GUChordMessage::GetFindSuccessorRsp ()
+{
+  return m_message.findSuccessorRsp;
 }
 
 //

@@ -57,6 +57,7 @@ GUChord::GUChord ()
   SeedManager::SetSeed (time (NULL));
   random = UniformVariable (0x00000000, 0xFFFFFFFF);
   m_currentTransactionId = random.GetInteger ();
+
 }
 
 GUChord::~GUChord ()
@@ -116,7 +117,7 @@ GUChord::StartApplication (void)
   my_node_key_hex = "";
 
   my_node_key_hex = ipHash(GetLocalAddress());
-  //std::cout << "Node: " << atoi(ReverseLookup(GetLocalAddress()).c_str()) << my_node_key_hex << std::endl;
+  //std::cout << "Node: " << atoi(ReverseLookup(GetLocalAddress()).c_str()) <<  " " << my_node_key_hex << std::endl;
 
   if (m_socket == 0)
     { 
@@ -155,6 +156,76 @@ GUChord::StopApplication (void)
 
   m_pingTracker.clear ();
 }
+
+Ipv4Address
+GUChord::findSuccessor()
+{
+    
+
+        return GetLocalAddress();
+}
+
+void GUChord::SendChordLookup(std::string, uint32_t)
+{
+
+
+
+}
+
+void
+GUChord::FingerInit()
+{
+
+    mpz_t my_key_gmp;
+    mpz_init_set_str(my_key_gmp, my_node_key_hex.c_str() , 16);
+
+    mpz_t mod_value;
+    mpz_init_set_ui(mod_value, 0);
+    mpz_ui_pow_ui(mod_value, 2, 160);
+
+    for (unsigned int i = 1; i <= 160; i++)
+    {
+
+        mpz_t add_value;
+        mpz_init(add_value);
+        mpz_ui_pow_ui(add_value, 2, i-1);
+
+        mpz_t start_value;
+        mpz_init_set(start_value, add_value); 
+
+        mpz_add(start_value, start_value, my_key_gmp);
+        mpz_mod(start_value, start_value, mod_value);
+
+        //Ipv4Address target_ip = findSuccessor(start_value);
+        
+        FingerInfo node;
+
+        char* temp = NULL;
+        temp = mpz_get_str(temp, 16, start_value);
+        std::string start_value_string(temp);
+
+        FingerTableEntry entry;
+        entry.successor = node;
+        entry.start_value = start_value_string;
+        
+        finger_table.push_back(entry);
+
+        uint32_t transactionId = GetNextTransactionId ();
+        uint32_t index = i - 1;
+//std::cout << "init" << index << std::endl;
+
+        CHORD_LOG ("Sending FIND_SUCCESSOR_REQ to Node: " << ReverseLookup(successor_ip_address) << " IP: " << successor_ip_address << " transactionId: " << transactionId); 
+
+         Ptr<Packet> packet = Create<Packet> ();
+         GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::FIND_SUCCESSOR_REQ, transactionId );
+
+         guChordMessage.SetFindSuccessorReq (atoi(ReverseLookup(GetLocalAddress()).c_str()), GetLocalAddress(), start_value_string, index );
+         packet->AddHeader (guChordMessage);
+         m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, m_appPort));
+
+    }    
+
+} 
 
 void
 GUChord::ProcessCommand (std::vector<std::string> tokens)
@@ -203,6 +274,8 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
                 predecessor_ip_address = my_ip;
                 predecessor_node_key_hex = my_node_key_hex;
                 
+                FingerInit();
+
                 in_ring = true;
 
           }
@@ -299,12 +372,6 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
 
 
     }
-}
-
-void GUChord::SendChordLookup(std::string, uint32_t)
-{
-
-
 }
 
 void
@@ -408,6 +475,12 @@ GUChord::RecvMessage (Ptr<Socket> socket)
         break;
       case GUChordMessage::RING_STATE_PING:
         ProcessRingStatePing (message, sourceAddress, sourcePort);
+        break;
+      case GUChordMessage::FIND_SUCCESSOR_REQ:
+        ProcessFindSuccessorReq (message, sourceAddress, sourcePort);
+        break;
+      case GUChordMessage::FIND_SUCCESSOR_RSP:
+        ProcessFindSuccessorRsp(message, sourceAddress, sourcePort);
         break;
       default:
         ERROR_LOG ("Unknown Message Type!");
@@ -598,6 +671,7 @@ GUChord::ProcessJoinRsp (GUChordMessage message, Ipv4Address sourceAddress, uint
         successor_id = message.GetJoinRsp().successor_id;
         successor_node_key_hex = ipHash(message.GetJoinRsp().successor_ip_address);
 
+        FingerInit();
 
         in_ring = true;
     }
@@ -795,6 +869,131 @@ GUChord::ProcessRingStatePing (GUChordMessage message, Ipv4Address sourceAddress
 
         }
 
+}
+
+void
+GUChord::ProcessFindSuccessorReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
+{
+
+        std::string fromNode = ReverseLookup (sourceAddress);
+        CHORD_LOG ("Received FIND_SUCCESSOR_REQ, From Node: " << fromNode);
+
+        std::string originator_node_key_hex = ipHash(message.GetFindSuccessorReq().originator_node_ip_address);
+
+        mpz_t my_key_gmp;
+        mpz_init_set_str(my_key_gmp, my_node_key_hex.c_str() , 16);
+
+        mpz_t lookup_key_gmp;
+        mpz_init_set_str(lookup_key_gmp, message.GetFindSuccessorReq().start_value.c_str() , 16);
+
+        mpz_t successor_key_gmp;
+        mpz_init_set_str(successor_key_gmp, successor_node_key_hex.c_str() , 16);
+
+        if(mpz_cmp(lookup_key_gmp, successor_key_gmp) <= 0 && mpz_cmp(lookup_key_gmp, my_key_gmp) > 0) {
+
+            uint32_t transactionId = GetNextTransactionId ();
+
+            CHORD_LOG ("Sending FIND_SUCCESSOR_RSP to Node: " << ReverseLookup(message.GetFindSuccessorReq().originator_node_ip_address) << " IP: " << message.GetFindSuccessorReq().originator_node_ip_address << " transactionId: " << transactionId); 
+
+            Ptr<Packet> packet = Create<Packet> ();
+            GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::FIND_SUCCESSOR_RSP, transactionId );
+
+            guChordMessage.SetFindSuccessorRsp (successor_id, successor_ip_address, message.GetFindSuccessorReq().start_value, message.GetFindSuccessorReq().start_value_index);
+            packet->AddHeader (guChordMessage);
+            m_socket->SendTo (packet, 0 , InetSocketAddress (message.GetFindSuccessorReq().originator_node_ip_address, m_appPort));
+
+
+         }
+        
+        else if (mpz_cmp(my_key_gmp, successor_key_gmp) > 0 && mpz_cmp(lookup_key_gmp, my_key_gmp) > 0)
+        
+        {
+
+            uint32_t transactionId = GetNextTransactionId ();
+
+            CHORD_LOG ("Sending FIND_SUCCESSOR_RSP to Node: " << ReverseLookup(message.GetFindSuccessorReq().originator_node_ip_address) << " IP: " << message.GetFindSuccessorReq().originator_node_ip_address << " transactionId: " << transactionId); 
+
+            Ptr<Packet> packet = Create<Packet> ();
+            GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::FIND_SUCCESSOR_RSP, transactionId );
+
+            guChordMessage.SetFindSuccessorRsp (successor_id, successor_ip_address, message.GetFindSuccessorReq().start_value, message.GetFindSuccessorReq().start_value_index);
+            packet->AddHeader (guChordMessage);
+            m_socket->SendTo (packet, 0 , InetSocketAddress (message.GetFindSuccessorReq().originator_node_ip_address, m_appPort));
+
+
+         }
+
+        else if (mpz_cmp(my_key_gmp, successor_key_gmp) > 0 && mpz_cmp(lookup_key_gmp, successor_key_gmp) < 0)
+        
+        {
+
+            uint32_t transactionId = GetNextTransactionId ();
+
+            CHORD_LOG ("Sending FIND_SUCCESSOR_RSP to Node: " << ReverseLookup(message.GetFindSuccessorReq().originator_node_ip_address) << " IP: " << message.GetFindSuccessorReq().originator_node_ip_address << " transactionId: " << transactionId); 
+
+            Ptr<Packet> packet = Create<Packet> ();
+            GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::FIND_SUCCESSOR_RSP, transactionId );
+
+            guChordMessage.SetFindSuccessorRsp (successor_id, successor_ip_address, message.GetFindSuccessorReq().start_value, message.GetFindSuccessorReq().start_value_index);
+            packet->AddHeader (guChordMessage);
+            m_socket->SendTo (packet, 0 , InetSocketAddress (message.GetFindSuccessorReq().originator_node_ip_address, m_appPort));
+
+
+         }
+
+        else if (mpz_cmp(successor_key_gmp, my_key_gmp) == 0)
+        {
+
+            uint32_t transactionId = GetNextTransactionId ();
+
+            CHORD_LOG ("Sending FIND_SUCCESSOR_RSP to Node: " << ReverseLookup(message.GetFindSuccessorReq().originator_node_ip_address) << " IP: " << message.GetFindSuccessorReq().originator_node_ip_address << " transactionId: " << transactionId); 
+
+            Ptr<Packet> packet = Create<Packet> ();
+            GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::FIND_SUCCESSOR_RSP, transactionId );
+
+            guChordMessage.SetFindSuccessorRsp (successor_id, successor_ip_address, message.GetFindSuccessorReq().start_value, message.GetFindSuccessorReq().start_value_index);
+            packet->AddHeader (guChordMessage);
+            m_socket->SendTo (packet, 0 , InetSocketAddress (message.GetFindSuccessorReq().originator_node_ip_address, m_appPort));
+
+
+         }
+
+        else {
+
+            uint32_t transactionId = GetNextTransactionId ();
+
+            CHORD_LOG ("Sending FIND_SUCCESSOR_REQ to Node: " << ReverseLookup(successor_ip_address) << " IP: " << successor_ip_address << " transactionId: " << transactionId); 
+
+            Ptr<Packet> packet = Create<Packet> ();
+            GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::FIND_SUCCESSOR_REQ, transactionId );
+
+            guChordMessage.SetFindSuccessorReq (message.GetFindSuccessorReq ().originator_node_id, message.GetFindSuccessorReq().originator_node_ip_address, message.GetFindSuccessorReq().start_value, message.GetFindSuccessorReq().start_value_index);
+            packet->AddHeader (guChordMessage);
+            m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, m_appPort));
+
+
+        }
+
+}
+
+void
+GUChord::ProcessFindSuccessorRsp (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
+{
+
+    std::string fromNode = ReverseLookup (sourceAddress);
+    CHORD_LOG ("Received FIND_SUCCESSOR_RSP, From Node: " << fromNode);
+
+    std::string successor_node_key_hex = ipHash(message.GetFindSuccessorRsp().successor_node_ip_address);
+
+     FingerInfo temp_finger;
+
+     temp_finger.finger_ip_address = message.GetFindSuccessorRsp().successor_node_ip_address;
+     temp_finger.finger_node_id = ReverseLookup(message.GetFindSuccessorRsp().successor_node_ip_address);
+     temp_finger.finger_key_hash = successor_node_key_hex; 
+    std::cout<<message.GetFindSuccessorRsp().start_value_index << std::endl;
+    finger_table[message.GetFindSuccessorRsp().start_value_index].successor = temp_finger;
+ 
+       
 }
 
 void

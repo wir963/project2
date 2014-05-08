@@ -22,6 +22,8 @@
 #include "ns3/packet.h"
 #include "ns3/object.h"
 
+#include <sstream>
+
 using namespace ns3;
 
 #define IPV4_ADDRESS_SIZE 4
@@ -42,7 +44,9 @@ class GUChordMessage : public Header
         DEPARTURE_REQ = 5,
         STABILIZE_RSP = 6,
         STABILIZE_REQ = 7,
-        RING_STATE_PING = 8       
+        RING_STATE_PING = 8,
+        FIND_SUCCESSOR_REQ = 9,
+        FIND_SUCCESSOR_RSP = 10      
       };
 
     GUChordMessage (GUChordMessage::MessageType messageType, uint32_t transactionId);
@@ -195,6 +199,39 @@ class GUChordMessage : public Header
         Ipv4Address originator_node_ip_address;
     };
 
+    struct FindSuccessorReq
+    {
+
+        void Print (std::ostream &os) const;
+        uint32_t GetSerializedSize (void) const;
+        void Serialize (Buffer::Iterator &start) const;
+        uint32_t Deserialize (Buffer::Iterator &start);
+        
+        // Payload
+
+        uint32_t originator_node_id;
+        Ipv4Address originator_node_ip_address;
+        std::string start_value;
+        uint32_t start_value_index;
+
+    };
+
+    struct FindSuccessorRsp
+    {
+
+        void Print (std::ostream &os) const;
+        uint32_t GetSerializedSize (void) const;
+        void Serialize (Buffer::Iterator &start) const;
+        uint32_t Deserialize (Buffer::Iterator &start);
+        
+        // Payload
+
+        uint32_t successor_node_id;
+        Ipv4Address successor_node_ip_address;
+        std::string start_value;
+        uint32_t start_value_index;
+
+    };
 
   private:
     struct
@@ -207,6 +244,8 @@ class GUChordMessage : public Header
         StabilizeReq stabilizeReq;
         StabilizeRsp stabilizeRsp;
         RingStatePing ringStatePing;
+        FindSuccessorReq findSuccessorReq;
+        FindSuccessorRsp findSuccessorRsp;
 
       } m_message;
     
@@ -254,6 +293,11 @@ class GUChordMessage : public Header
     RingStatePing GetRingStatePing ();
     void SetRingStatePing (uint32_t, Ipv4Address);
 
+    FindSuccessorReq GetFindSuccessorReq ();
+    void SetFindSuccessorReq (uint32_t, Ipv4Address, std::string, uint32_t);
+   
+    FindSuccessorRsp GetFindSuccessorRsp ();
+    void SetFindSuccessorRsp (uint32_t, Ipv4Address, std::string, uint32_t);
     
 
 }; // class GUChordMessage

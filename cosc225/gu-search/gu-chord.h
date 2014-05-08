@@ -65,6 +65,8 @@ class GUChord : public GUApplication
     void ProcessStabilizeReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
     void ProcessStabilizeRsp (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
     void ProcessRingStatePing (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
+    void ProcessFindSuccessorReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
+    void ProcessFindSuccessorRsp (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
     
     void AuditPings ();
     uint32_t GetNextTransactionId ();
@@ -79,6 +81,25 @@ class GUChord : public GUApplication
     virtual void ProcessCommand (std::vector<std::string> tokens);
 
     void SendChordLookup(std::string, uint32_t);
+       
+    void FingerInit();
+
+    Ipv4Address findSuccessor();
+
+    struct FingerInfo {
+
+        Ipv4Address finger_ip_address;
+        std::string finger_node_id;
+        std::string finger_key_hash;
+
+     };
+
+    struct FingerTableEntry {
+
+        std::string start_value;
+        FingerInfo successor;
+
+     };
     
   protected:
     virtual void DoDispose ();
@@ -120,6 +141,9 @@ class GUChord : public GUApplication
     int counter;
 
     std::string my_node_key_hex;
+
+    //std::map<std::string, FingerInfo> finger_table;
+    std::vector<FingerTableEntry> finger_table;
 
 };
 
