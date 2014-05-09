@@ -93,6 +93,7 @@ class GUChord : public GUApplication
     void ProcessFindPredecessorAck (GUChordMessage, Ipv4Address, uint16_t);
 
     bool isSuccessor(mpz_t, mpz_t, mpz_t);
+    bool isInBetween(mpz_t, mpz_t, mpz_t);
 
     void UpdateOtherTables();
     
