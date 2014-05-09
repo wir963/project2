@@ -67,6 +67,8 @@ class GUChord : public GUApplication
     void ProcessRingStatePing (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
     void ProcessFindSuccessorReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
     void ProcessFindSuccessorRsp (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
+    void ProcessLookupReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
+    void ProcessLookupRsp (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
     
     void AuditPings ();
     uint32_t GetNextTransactionId ();
@@ -79,12 +81,10 @@ class GUChord : public GUApplication
 
     // From GUApplication
     virtual void ProcessCommand (std::vector<std::string> tokens);
-
-    void Lookup(std::string);
        
     void FingerInit(int);
 
-    Ipv4Address findSuccessor();
+    void SendLookupRequest(std::string);
 
     bool isSuccessor(mpz_t, mpz_t, mpz_t);
     bool isInBetween(mpz_t, mpz_t, mpz_t);
