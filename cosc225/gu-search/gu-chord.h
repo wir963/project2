@@ -89,6 +89,7 @@ class GUChord : public GUApplication
     void FindPredecessor(int);
 
     void ProcessFindPredecessorReq (GUChordMessage, Ipv4Address, uint16_t);
+    void ProcessFindPredecessorRsp (GUChordMessage, Ipv4Address, uint16_t);
 
     bool isSuccessor(mpz_t, mpz_t, mpz_t);
 
