@@ -388,13 +388,9 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
           packet2->AddHeader (guChordMessage2);
           m_socket->SendTo (packet2, 0 , InetSocketAddress (predecessor_ip_address, m_appPort));
 
-
-         // m_chordLeave (message.GetLookupRsp().successor_node_ip_address, message.GetLookupRsp().successor_node_id, ipHash(message.GetLookupRsp().successor_node_ip_address), message.GetTransactionId());
+          m_chordLeave (successor_ip_address, successor_id);
            
-   
           finger_table.clear();
-
-
     }
 
     else if (command == "ringstate" || command == "RINGSTATE")
@@ -823,6 +819,8 @@ GUChord::ProcessDepartureReq (GUChordMessage message, Ipv4Address sourceAddress,
           predecessor_ip_address = message.GetDepartureReq ().conn_node_ip_address;
           predecessor_node_key_hex = ipHash(message.GetDepartureReq ().conn_node_ip_address);
 
+          m_predChange (predecessor_ip_address, predecessor_node_key_hex);
+
         }
 
         else if (mpz_cmp(successor_key_gmp, sender_key_gmp) == 0) {
@@ -867,6 +865,7 @@ GUChord::ProcessStabilizeReq (GUChordMessage message, Ipv4Address sourceAddress,
         predecessor_id = sender_id;
         predecessor_ip_address = message.GetStabilizeReq().sender_node_ip_address;
         predecessor_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
+       // m_predChange (predecessor_ip_address, predecessor_node_key_hex);
     }
     // only one node in the network case
     else if (mpz_cmp(my_key_gmp, predecessor_key_gmp) == 0)
@@ -874,6 +873,7 @@ GUChord::ProcessStabilizeReq (GUChordMessage message, Ipv4Address sourceAddress,
         predecessor_id = sender_id;
         predecessor_ip_address = message.GetStabilizeReq().sender_node_ip_address;
         predecessor_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
+        //m_predChange (predecessor_ip_address, predecessor_node_key_hex);
     }
 
     else if (mpz_cmp(my_key_gmp, predecessor_key_gmp) < 0 && mpz_cmp(sender_key_gmp, predecessor_key_gmp) > 0 )
@@ -881,18 +881,21 @@ GUChord::ProcessStabilizeReq (GUChordMessage message, Ipv4Address sourceAddress,
         predecessor_id = sender_id;
         predecessor_ip_address = message.GetStabilizeReq().sender_node_ip_address;
         predecessor_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
+        //m_predChange (predecessor_ip_address, predecessor_node_key_hex);
     }
     else if (mpz_cmp(my_key_gmp, predecessor_key_gmp) < 0 && mpz_cmp(sender_key_gmp, my_key_gmp) < 0)
     {
         predecessor_id = sender_id;
         predecessor_ip_address = message.GetStabilizeReq().sender_node_ip_address;
         predecessor_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
+        //m_predChange (predecessor_ip_address, predecessor_node_key_hex);
     }
     else if (predecessor_node_key_hex.compare(" ") == -1)
     { 
         predecessor_id = sender_id;
         predecessor_ip_address = message.GetStabilizeReq().sender_node_ip_address;
         predecessor_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
+        //m_predChange (predecessor_ip_address, predecessor_node_key_hex);
     }
 
     if (show_next_stabilize == true) {
