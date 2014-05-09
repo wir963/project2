@@ -980,7 +980,7 @@ GUChord::ProcessFindSuccessorRsp (GUChordMessage message, Ipv4Address sourceAddr
     }
     else {
         // call the update existing finger tables method
-        //UpdateOtherTables();
+        UpdateOtherTables();
     }
     
  
@@ -989,7 +989,7 @@ GUChord::ProcessFindSuccessorRsp (GUChordMessage message, Ipv4Address sourceAddr
 
 void GUChord::UpdateOtherTables()
 {
-  for (int i = 0; i < 160; i++)
+  for (int i = 1; i <= 160; i++)
   {
     FindPredecessor(i);
   }
