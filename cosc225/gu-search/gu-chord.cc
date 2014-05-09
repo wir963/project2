@@ -173,7 +173,7 @@ void GUChord::SendChordLookup(std::string, uint32_t)
 }
 
 void
-GUChord::FingerInit()
+GUChord::FingerInit(int i)
 {
 
     mpz_t my_key_gmp;
@@ -183,8 +183,8 @@ GUChord::FingerInit()
     mpz_init_set_ui(mod_value, 0);
     mpz_ui_pow_ui(mod_value, 2, 160);
 
-    for (unsigned int i = 1; i <= 160; i++)
-    {
+    //for (unsigned int i = 1; i <= 160; i++)
+    //{
 
         mpz_t add_value;
         mpz_init(add_value);
@@ -223,7 +223,7 @@ GUChord::FingerInit()
          packet->AddHeader (guChordMessage);
          m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, m_appPort));
 
-    }    
+    //}
 
 } 
 
@@ -274,7 +274,18 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
                 predecessor_ip_address = my_ip;
                 predecessor_node_key_hex = my_node_key_hex;
                 
-                FingerInit();
+                //FingerInit();
+              for (unsigned int i = 1; i <= 160; i++)
+              {
+                  FingerTableEntry entry;
+                  entry.start_value = start_value_string;
+                  entry.finger_node_id = ReverseLookup(GetLocalAddress());
+                  entry.finger_ip_address = GetLocalAddress();
+                  entry.finger_key_hash = my_node_key_hex;
+                  //std::cout << "HI HATERZ" << GetLocalAddress() << std::endl;
+                  
+                  finger_table.push_back(entry);
+              }
 
                 in_ring = true;
 
@@ -998,6 +1009,8 @@ GUChord::ProcessFindSuccessorRsp (GUChordMessage message, Ipv4Address sourceAddr
     finger_table.at(message.GetFindSuccessorRsp().start_value_index).finger_ip_address = message.GetFindSuccessorRsp().successor_node_ip_address;
     finger_table.at(message.GetFindSuccessorRsp().start_value_index).finger_node_id = ReverseLookup(message.GetFindSuccessorRsp().successor_node_ip_address);
     finger_table.at(message.GetFindSuccessorRsp().start_value_index).finger_key_hash = successor_node_key_hex;
+    
+    FingerInit(message.GetFindSuccessorRsp().start_value + 1);
  
        
 }

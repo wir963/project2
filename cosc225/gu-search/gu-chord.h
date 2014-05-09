@@ -82,7 +82,7 @@ class GUChord : public GUApplication
 
     void SendChordLookup(std::string, uint32_t);
        
-    void FingerInit();
+    void FingerInit(int);
 
     Ipv4Address findSuccessor();
 
