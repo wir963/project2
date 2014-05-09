@@ -389,6 +389,12 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
           m_socket->SendTo (packet2, 0 , InetSocketAddress (predecessor_ip_address, m_appPort));
 
 
+         // m_chordLeave (message.GetLookupRsp().successor_node_ip_address, message.GetLookupRsp().successor_node_id, ipHash(message.GetLookupRsp().successor_node_ip_address), message.GetTransactionId());
+           
+   
+          finger_table.clear();
+
+
     }
 
     else if (command == "ringstate" || command == "RINGSTATE")
@@ -400,6 +406,12 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
           uint32_t transactionId = GetNextTransactionId ();
           Ipv4Address my_ip = GetLocalAddress();
           uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
+
+for(unsigned int i = 0; i < finger_table.size(); i++) {
+
+            std::cout << "index: " << i << " start_value: " << finger_table[i].start_value << "succ id: " << finger_table[i].finger_ip_address << std::endl;
+
+        }
 
           CHORD_LOG ("\nRingState<" << my_id << ">: Pred<" << predecessor_id << ", " << predecessor_node_key_hex << ">, Succ<" << successor_id << ", " << successor_node_key_hex << ">");
 
