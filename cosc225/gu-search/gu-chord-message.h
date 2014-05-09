@@ -343,6 +343,7 @@ class GUChordMessage : public Header
     FindPredecessorRsp GetFindPredecessorRsp ();
     void SetFindPredecessorRsp (uint32_t, Ipv4Address, std::string, uint32_t);
     void SetFindPredecessorRsp (FindPredecessorRsp);
+    void SetFindPredecessorRsp (FindPredecessorReq);
    
 
 }; // class GUChordMessage

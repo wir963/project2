@@ -1038,6 +1038,23 @@ GUChordMessage::SetFindPredecessorRsp (FindPredecessorRsp response)
     m_message.findPredecessorRsp.start_value_index = response.start_value_index;
 }
 
+void
+GUChordMessage::SetFindPredecessorRsp (FindPredecessorReq request)
+{
+  if (m_messageType == 0)
+    {
+      m_messageType = FIND_PREDECESSOR_RSP;
+    }
+  else
+    {
+      NS_ASSERT (m_messageType == FIND_PREDECESSOR_RSP);
+    }
+    m_message.findPredecessorRsp.originator_node_id = request.originator_node_id;
+    m_message.findPredecessorRsp.originator_node_ip_address = request.originator_node_ip_address;
+    m_message.findPredecessorRsp.start_value = request.start_value;
+    m_message.findPredecessorRsp.start_value_index = request.start_value_index;
+}
+
 GUChordMessage::FindPredecessorRsp
 GUChordMessage::GetFindPredecessorRsp ()
 {
