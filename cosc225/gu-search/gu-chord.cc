@@ -165,10 +165,32 @@ GUChord::findSuccessor()
         return GetLocalAddress();
 }
 
-void GUChord::SendChordLookup(std::string, uint32_t)
+void GUChord::Lookup(std::string target_key)
 {
-
-
+  mpz_t target_key_gmp;
+  mpz_t my_key_gmp;
+  mpz_t predecessor_key_gmp;
+  mpz_init_set_str(target_key_gmp, target_key.c_str(), 16);
+  mpz_init_set_str(my_key_gmp, ipHash(GetLocalAddress()).c_str(), 16);
+  mpz_init_set_str(predecessor_key_gmp, ipHash(predecessor_ip_address).c_str(), 16);
+  // first check if you are the right key
+  if(isSuccessor(predecessor_key_gmp, target_key_gmp, my_key_gmp))
+  {
+    // you are the successor
+  }
+  else
+  {
+    mpz_t finger_key_gmp;
+    for (int i = 0; i < 160; i++)
+    {
+      mpz_init_set_str(finger_key_gmp, finger_key[i].finger_key_hash.c_str(), 16);
+      if (isSuccessor(my_key_gmp, target_key_gmp, finger_key_gmp))
+      {
+        // you found the node to forward the message along to
+        break;
+      }
+    }
+  }
 
 }
 

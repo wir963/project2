@@ -80,7 +80,7 @@ class GUChord : public GUApplication
     // From GUApplication
     virtual void ProcessCommand (std::vector<std::string> tokens);
 
-    void SendChordLookup(std::string, uint32_t);
+    void Lookup(std::string);
        
     void FingerInit(int);
 
