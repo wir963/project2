@@ -519,6 +519,9 @@ GUChord::RecvMessage (Ptr<Socket> socket)
       case GUChordMessage::FIND_SUCCESSOR_RSP:
         ProcessFindSuccessorRsp(message, sourceAddress, sourcePort);
         break;
+      case GUChordMessage::FIND_PREDECESSOR_REQ:
+        ProcessFindPredecessorReq (message, sourceAddress, sourcePort);
+        break;
       default:
         ERROR_LOG ("Unknown Message Type!");
         break;
@@ -1004,7 +1007,6 @@ void GUChord::FindPredecessor(int index)
     mpz_init_set_ui(mod_value, 0);
     mpz_ui_pow_ui(mod_value, 2, 160);
 
-
     mpz_t add_value;
     mpz_init(add_value);
     mpz_ui_pow_ui(add_value, 2, index-1);
@@ -1058,7 +1060,7 @@ GUChord::ProcessFindPredecessorReq (GUChordMessage message, Ipv4Address sourceAd
         mpz_t originator_key_gmp;
         mpz_init_set_str(originator_key_gmp, originator_node_key_hex.c_str() , 16);
         // need the hash of this nodes finger[index]
-        int index = message.GetFindSuccessorReq().start_value_index;
+        int index = message.GetFindPredecessorReq().start_value_index;
         mpz_t finger_key_gmp;
         mpz_init_set_str(finger_key_gmp, finger_table[index].finger_key_hash.c_str() , 16);
         // maybe update the finger
