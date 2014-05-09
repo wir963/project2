@@ -688,7 +688,7 @@ GUChord::ProcessJoinRsp (GUChordMessage message, Ipv4Address sourceAddress, uint
         successor_id = message.GetJoinRsp().successor_id;
         successor_node_key_hex = ipHash(message.GetJoinRsp().successor_ip_address);
 
-        FingerInit();
+        FingerInit(1);
 
         in_ring = true;
     }
