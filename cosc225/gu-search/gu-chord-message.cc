@@ -752,9 +752,7 @@ GUChordMessage::FindSuccessorReq::Serialize (Buffer::Iterator &start) const
     start.WriteU16 (start_value.length ());
     
     start.Write ((uint8_t *) (const_cast<char*> (start_value.c_str())), start_value.length());
-
-//std::cout << "SE" << start_value_index << std::endl;
-
+std::cout << "---" << start_value_index << std::endl;
     start.WriteU32 (start_value_index);
 }
 
@@ -771,7 +769,8 @@ GUChordMessage::FindSuccessorReq::Deserialize (Buffer::Iterator &start)
     free (str);
 
     start_value_index = start.ReadU32();
-//std::cout << "DE" << start_value_index << std::endl;
+
+  std::cout << "****" << start_value_index << std::endl;
 
     return FindSuccessorReq::GetSerializedSize ();
 }
@@ -824,7 +823,6 @@ GUChordMessage::FindSuccessorRsp::Serialize (Buffer::Iterator &start) const
     start.WriteU16 (start_value.length ());
 
     start.Write ((uint8_t *) (const_cast<char*> (start_value.c_str())), start_value.length());
-std::cout << "SE" << start_value_index << std::endl;
 
     start.WriteU32 (start_value_index);
 }
@@ -842,7 +840,6 @@ GUChordMessage::FindSuccessorRsp::Deserialize (Buffer::Iterator &start)
     free (str);
 
     start_value_index = start.ReadU32();
-std::cout << "DE" << start_value_index << std::endl;
   
     return FindSuccessorRsp::GetSerializedSize ();
 }
@@ -860,8 +857,8 @@ GUChordMessage::SetFindSuccessorRsp (uint32_t node_id, Ipv4Address ip_address, s
     }
     m_message.findSuccessorRsp.successor_node_id = node_id;
     m_message.findSuccessorRsp.successor_node_ip_address = ip_address;
-    m_message.findSuccessorReq.start_value = start_value;
-    m_message.findSuccessorReq.start_value_index = index;
+    m_message.findSuccessorRsp.start_value = start_value;
+    m_message.findSuccessorRsp.start_value_index = index;
 }
 
 GUChordMessage::FindSuccessorRsp

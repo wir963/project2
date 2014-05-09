@@ -117,7 +117,7 @@ GUChord::StartApplication (void)
   my_node_key_hex = "";
 
   my_node_key_hex = ipHash(GetLocalAddress());
-  //std::cout << "Node: " << atoi(ReverseLookup(GetLocalAddress()).c_str()) <<  " " << my_node_key_hex << std::endl;
+  std::cout << "Node: " << atoi(ReverseLookup(GetLocalAddress()).c_str()) <<  " " << my_node_key_hex << std::endl;
 
   if (m_socket == 0)
     { 
@@ -197,22 +197,22 @@ GUChord::FingerInit()
         mpz_mod(start_value, start_value, mod_value);
 
         //Ipv4Address target_ip = findSuccessor(start_value);
-        
-        FingerInfo node;
 
         char* temp = NULL;
         temp = mpz_get_str(temp, 16, start_value);
         std::string start_value_string(temp);
 
         FingerTableEntry entry;
-        entry.successor = node;
         entry.start_value = start_value_string;
+        //entry.finger_node_id = ReverseLookup(GetLocalAddress());
+        //entry.finger_ip_address = GetLocalAddress();
+        //entry.finger_key_hash = my_node_key_hex;
+        //std::cout << "HI HATERZ" << GetLocalAddress() << std::endl;
         
         finger_table.push_back(entry);
 
         uint32_t transactionId = GetNextTransactionId ();
         uint32_t index = i - 1;
-//std::cout << "init" << index << std::endl;
 
         CHORD_LOG ("Sending FIND_SUCCESSOR_REQ to Node: " << ReverseLookup(successor_ip_address) << " IP: " << successor_ip_address << " transactionId: " << transactionId); 
 
@@ -335,6 +335,12 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
           uint32_t transactionId = GetNextTransactionId ();
           Ipv4Address my_ip = GetLocalAddress();
           uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
+
+for(unsigned int i = 0; i < finger_table.size(); i++) {
+
+            std::cout << "index: " << i << " start_value: " << finger_table[i].start_value << "succ id: " << finger_table[i].finger_ip_address << std::endl;
+
+        }
 
           CHORD_LOG ("\nRingState<" << my_id << ">: Pred<" << predecessor_id << ", " << predecessor_node_key_hex << ">, Succ<" << successor_id << ", " << successor_node_key_hex << ">");
 
@@ -874,7 +880,7 @@ GUChord::ProcessRingStatePing (GUChordMessage message, Ipv4Address sourceAddress
 void
 GUChord::ProcessFindSuccessorReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
 {
-
+std::cout << message.GetFindSuccessorReq().start_value_index << std::endl;
         std::string fromNode = ReverseLookup (sourceAddress);
         CHORD_LOG ("Received FIND_SUCCESSOR_REQ, From Node: " << fromNode);
 
@@ -951,7 +957,9 @@ GUChord::ProcessFindSuccessorReq (GUChordMessage message, Ipv4Address sourceAddr
             Ptr<Packet> packet = Create<Packet> ();
             GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::FIND_SUCCESSOR_RSP, transactionId );
 
+
             guChordMessage.SetFindSuccessorRsp (successor_id, successor_ip_address, message.GetFindSuccessorReq().start_value, message.GetFindSuccessorReq().start_value_index);
+
             packet->AddHeader (guChordMessage);
             m_socket->SendTo (packet, 0 , InetSocketAddress (message.GetFindSuccessorReq().originator_node_ip_address, m_appPort));
 
@@ -979,21 +987,17 @@ GUChord::ProcessFindSuccessorReq (GUChordMessage message, Ipv4Address sourceAddr
 void
 GUChord::ProcessFindSuccessorRsp (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
 {
-
+//std::cout << message.GetFindSuccessorRsp().start_value_index << std::endl;
+//std::cout << message.GetFindSuccessorRsp().successor_node_ip_address << std::endl;
     std::string fromNode = ReverseLookup (sourceAddress);
     CHORD_LOG ("Received FIND_SUCCESSOR_RSP, From Node: " << fromNode);
 
     std::string successor_node_key_hex = ipHash(message.GetFindSuccessorRsp().successor_node_ip_address);
-
-     FingerInfo temp_finger;
-
-     temp_finger.finger_ip_address = message.GetFindSuccessorRsp().successor_node_ip_address;
-     temp_finger.finger_node_id = ReverseLookup(message.GetFindSuccessorRsp().successor_node_ip_address);
-     temp_finger.finger_key_hash = successor_node_key_hex; 
-    std::cout<<message.GetFindSuccessorRsp().start_value_index << std::endl;
-    finger_table[message.GetFindSuccessorRsp().start_value_index].successor = temp_finger;
-//std::vector<FingerTableEntry>::iterator it = finger_table.find(finger_table.begin(), finger_table.end(), message.GetFindSuccessorRsp().start_value);
-//finger_table[*it].successor = temp_finger;
+    
+    finger_table.at(message.GetFindSuccessorRsp().start_value_index).start_value = message.GetFindSuccessorRsp().start_value;
+    finger_table.at(message.GetFindSuccessorRsp().start_value_index).finger_ip_address = message.GetFindSuccessorRsp().successor_node_ip_address;
+    finger_table.at(message.GetFindSuccessorRsp().start_value_index).finger_node_id = ReverseLookup(message.GetFindSuccessorRsp().successor_node_ip_address);
+    finger_table.at(message.GetFindSuccessorRsp().start_value_index).finger_key_hash = successor_node_key_hex;
  
        
 }

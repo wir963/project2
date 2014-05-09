@@ -86,18 +86,12 @@ class GUChord : public GUApplication
 
     Ipv4Address findSuccessor();
 
-    struct FingerInfo {
-
-        Ipv4Address finger_ip_address;
-        std::string finger_node_id;
-        std::string finger_key_hash;
-
-     };
-
     struct FingerTableEntry {
 
         std::string start_value;
-        FingerInfo successor;
+        Ipv4Address finger_ip_address;
+        std::string finger_node_id;
+        std::string finger_key_hash;
 
      };
     
