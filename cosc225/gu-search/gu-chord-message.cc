@@ -977,8 +977,8 @@ GUChordMessage::FindPredecessorRsp::Print (std::ostream &os) const
 void
 GUChordMessage::FindPredecessorRsp::Serialize (Buffer::Iterator &start) const
 {
-    start.WriteU32 (predecessor_node_id);
-    start.WriteHtonU32(predecessor_node_ip_address.Get());
+    start.WriteU32 (originator_node_id);
+    start.WriteHtonU32(originator_node_ip_address.Get());
 
     start.WriteU16 (start_value.length ());
 
@@ -990,8 +990,8 @@ GUChordMessage::FindPredecessorRsp::Serialize (Buffer::Iterator &start) const
 uint32_t
 GUChordMessage::FindPredecessorRsp::Deserialize (Buffer::Iterator &start)
 {  
-    predecessor_node_id = start.ReadU32();
-    predecessor_node_ip_address = Ipv4Address (start.ReadNtohU32 ());
+    originator_node_id = start.ReadU32();
+    originator_node_ip_address = Ipv4Address (start.ReadNtohU32 ());
     
     uint16_t length = start.ReadU16 ();
     char* str = (char*) malloc (length);
@@ -1015,10 +1015,27 @@ GUChordMessage::SetFindPredecessorRsp (uint32_t node_id, Ipv4Address ip_address,
     {
       NS_ASSERT (m_messageType == FIND_PREDECESSOR_RSP);
     }
-    m_message.findPredecessorRsp.predecessor_node_id = node_id;
-    m_message.findPredecessorRsp.predecessor_node_ip_address = ip_address;
+    m_message.findPredecessorRsp.originator_node_id = node_id;
+    m_message.findPredecessorRsp.originator_node_ip_address = ip_address;
     m_message.findPredecessorRsp.start_value = start_value;
     m_message.findPredecessorRsp.start_value_index = index;
+}
+
+void
+GUChordMessage::SetFindPredecessorRsp (FindPredecessorRsp response)
+{
+  if (m_messageType == 0)
+    {
+      m_messageType = FIND_PREDECESSOR_RSP;
+    }
+  else
+    {
+      NS_ASSERT (m_messageType == FIND_PREDECESSOR_RSP);
+    }
+    m_message.findPredecessorRsp.originator_node_id = response.originator_node_id;
+    m_message.findPredecessorRsp.originator_node_ip_address = response.originator_node_ip_address;
+    m_message.findPredecessorRsp.start_value = response.start_value;
+    m_message.findPredecessorRsp.start_value_index = response.start_value_index;
 }
 
 GUChordMessage::FindPredecessorRsp

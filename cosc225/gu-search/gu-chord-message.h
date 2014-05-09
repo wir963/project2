@@ -262,8 +262,8 @@ class GUChordMessage : public Header
         
         // Payload
 
-        uint32_t predecessor_node_id;
-        Ipv4Address predecessor_node_ip_address;
+        uint32_t originator_node_id;
+        Ipv4Address originator_node_ip_address;
         std::string start_value;
         uint32_t start_value_index;
 
@@ -342,6 +342,7 @@ class GUChordMessage : public Header
    
     FindPredecessorRsp GetFindPredecessorRsp ();
     void SetFindPredecessorRsp (uint32_t, Ipv4Address, std::string, uint32_t);
+    void SetFindPredecessorRsp (FindPredecessorRsp);
    
 
 }; // class GUChordMessage
