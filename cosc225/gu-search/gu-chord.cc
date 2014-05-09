@@ -173,6 +173,35 @@ void GUChord::SendChordLookup(std::string, uint32_t)
 }
 
 void
+GUChord::FingerFix(int i)
+{
+  finger_table[0].finger_ip_address = successor_ip_address;
+  finger_table[0].finger_node_id = successor_id;
+  finger_table[0].finger_key_hash = successor_node_key_hash;
+  mpz_t prev_finger_start;
+  mpz_t prev_finger_node;
+  mpz_t curr_finger_start;
+  for (i; i < 160; i++)
+  {
+    mpz_init_set_str(prev_finger_start, finger_table[i-1].start_value.c_str(), 16);
+    mpz_init_set_str(prev_finger_node, finger_table[i-1].finger_key_hash.c_str(), 16);
+    mpz_init_set_str(curr_finger_start, finger_table[i].start_value.c_str(), 16);
+    if (!isSuccessor(prev_finger_start, curr_finger_start, prev_finger_node))
+    {
+      uint32_t transactionId = GetNextTransactionId ();
+
+      Ptr<Packet> packet = Create<Packet> ();
+      GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::FIND_SUCCESSOR_REQ, transactionId );
+
+      guChordMessage.SetFindSuccessorReq (atoi(ReverseLookup(GetLocalAddress()).c_str()), GetLocalAddress(), finger_table[index].start_value, index);
+      packet->AddHeader (guChordMessage);
+      m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, m_appPort));
+      break;
+    }
+  }
+}
+
+void
 GUChord::FingerInit(int i)
 {
 
@@ -449,7 +478,10 @@ GUChord::RunStabilize ()
 
      }
 
+     //FixFingers();
+
      stabilize_timer.Schedule(stabilize_timeout);
+
 }
 
 void
@@ -983,11 +1015,15 @@ GUChord::ProcessFindSuccessorRsp (GUChordMessage message, Ipv4Address sourceAddr
     finger_table.at(message.GetFindSuccessorRsp().start_value_index).finger_node_id = ReverseLookup(message.GetFindSuccessorRsp().successor_node_ip_address);
     finger_table.at(message.GetFindSuccessorRsp().start_value_index).finger_key_hash = successor_node_key_hex;
     
-    if (message.GetFindSuccessorRsp().start_value_index + 2 <= 160) {
+    if (finger_table.size() != 160) {
         FingerInit(message.GetFindSuccessorRsp().start_value_index + 2);
     }
     else {
         // call the update existing finger tables method
+        // need to update the table
+        
+        // then call it with index+1
+        FixFinger(message.GetFindSuccessorRsp().start_value_index+2);
         //UpdateOtherTables();
     }
     

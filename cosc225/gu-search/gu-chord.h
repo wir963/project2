@@ -95,6 +95,8 @@ class GUChord : public GUApplication
     bool isSuccessor(mpz_t, mpz_t, mpz_t);
 
     void UpdateOtherTables();
+    
+    void FingerFix(uint32_t);
 
     struct FingerTableEntry {
 
