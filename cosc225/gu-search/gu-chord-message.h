@@ -361,7 +361,7 @@ class GUChordMessage : public Header
     void SetFindPredecessorRsp (FindPredecessorRsp);
     void SetFindPredecessorRsp (FindPredecessorReq);
 
-    FindPredecessorReq GetFindPredecessorAck ();
+    FindPredecessorAck GetFindPredecessorAck ();
     void SetFindPredecessorAck (uint32_t);
    
 
