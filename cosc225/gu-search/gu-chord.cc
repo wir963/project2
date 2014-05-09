@@ -988,7 +988,7 @@ GUChord::ProcessFindSuccessorRsp (GUChordMessage message, Ipv4Address sourceAddr
     }
     else {
         // call the update existing finger tables method
-        UpdateOtherTables();
+        //UpdateOtherTables();
     }
     
  
