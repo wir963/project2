@@ -1076,13 +1076,18 @@ GUChord::ProcessFindPredecessorReq (GUChordMessage message, Ipv4Address sourceAd
                 // here is where you use Predecessor Response
                 CHORD_LOG ("Sending FIND_PREDECESSOR_RSP to Node: " << predecessor_id << " IP: " << predecessor_ip_address << " transactionId: " << transactionId); 
 
-                Ptr<Packet> packet = Create<Packet> ();
+                /*Ptr<Packet> packet = Create<Packet> ();
                 GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::FIND_PREDECESSOR_RSP, transactionId );
                 guChordMessage.SetFindPredecessorRsp (message.GetFindPredecessorReq());
                 packet->AddHeader (guChordMessage);
-                m_socket->SendTo (packet, 0 , InetSocketAddress (predecessor_ip_address, m_appPort));
+                m_socket->SendTo (packet, 0 , InetSocketAddress (predecessor_ip_address, m_appPort));*/
             }
-
+            transactionId = GetNextTransactionId ();
+            Ptr<Packet> pck = Create<Packet> ();
+            GUChordMessage guMessage = GUChordMessage (GUChordMessage::FIND_PREDECESSOR_ACK, transactionId );
+            guMessage.SetFindPredecessorAck (index);
+            pck->AddHeader (guMessage);
+            m_socket->SendTo (pck, 0 , InetSocketAddress (message.GetFindPredecessorReq().originator_node_ip_address, m_appPort));
 
             
         }
