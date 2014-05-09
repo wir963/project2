@@ -1073,7 +1073,7 @@ GUChordMessage::GetFindPredecessorRsp ()
   return m_message.findPredecessorRsp;
 }
 
-/* FIND_PREDECESSOR_RSP */
+/* FIND_PREDECESSOR_ACK */
 
 uint32_t 
 GUChordMessage::FindPredecessorAck::GetSerializedSize (void) const
@@ -1084,7 +1084,7 @@ GUChordMessage::FindPredecessorAck::GetSerializedSize (void) const
 }
 
 void
-GUChordMessage::FindPredecessorRsp::Print (std::ostream &os) const
+GUChordMessage::FindPredecessorAck::Print (std::ostream &os) const
 {
   //os << "StabilizeReq:: Message: " << stabilizeReqMessage << "\n";
 }

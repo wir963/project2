@@ -299,7 +299,7 @@ class GUChordMessage : public Header
         FindSuccessorRsp findSuccessorRsp;
         FindPredecessorReq findPredecessorReq;
         FindPredecessorRsp findPredecessorRsp;
-        FindPredecessorRsp findPredecessorAck;
+        FindPredecessorAck findPredecessorAck;
 
       } m_message;
     
