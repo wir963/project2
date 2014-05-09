@@ -1030,7 +1030,10 @@ GUChord::ProcessFindSuccessorRsp (GUChordMessage message, Ipv4Address sourceAddr
     finger_table.at(message.GetFindSuccessorRsp().start_value_index).finger_node_id = ReverseLookup(message.GetFindSuccessorRsp().successor_node_ip_address);
     finger_table.at(message.GetFindSuccessorRsp().start_value_index).finger_key_hash = successor_node_key_hex;
     
-    FingerInit(message.GetFindSuccessorRsp().start_value_index + 1);
+    if (message.GetFindSuccessorRsp().start_value_index < 160) {
+        FingerInit(message.GetFindSuccessorRsp().start_value_index + 1);
+    }
+    
  
        
 }
