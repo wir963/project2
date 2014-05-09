@@ -1033,9 +1033,20 @@ GUChord::ProcessFindSuccessorRsp (GUChordMessage message, Ipv4Address sourceAddr
     if (message.GetFindSuccessorRsp().start_value_index + 2 <= 160) {
         FingerInit(message.GetFindSuccessorRsp().start_value_index + 2);
     }
+    else {
+        // call the update existing finger tables method
+        UpdateOtherTables()
+    }
     
  
        
+}
+
+void GUChord::UpdateOtherTables()
+{
+  for (int i = 0; i < 160; i++)
+  {
+  }
 }
 
 void
