@@ -401,12 +401,6 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
           Ipv4Address my_ip = GetLocalAddress();
           uint32_t my_id = atoi(ReverseLookup(my_ip).c_str());
 
-for(unsigned int i = 0; i < finger_table.size(); i++) {
-
-            std::cout << "index: " << i << " start_value: " << finger_table[i].start_value << "succ id: " << finger_table[i].finger_ip_address << std::endl;
-
-        }
-
           CHORD_LOG ("\nRingState<" << my_id << ">: Pred<" << predecessor_id << ", " << predecessor_node_key_hex << ">, Succ<" << successor_id << ", " << successor_node_key_hex << ">");
 
           //CHORD_LOG ("Sending RING_STATE_PING to Node: " << ReverseLookup(successor_ip_address) << " IP: " << successor_ip_address << " transactionId: " << transactionId);
@@ -1073,10 +1067,10 @@ GUChord::ProcessLookupReq (GUChordMessage message, Ipv4Address sourceAddress, ui
   if(isSuccessor(predecessor_key_gmp, target_key_gmp, my_key_gmp))
   {
 
-    uint32_t transactionId = GetNextTransactionId ();
+    //uint32_t transactionId = GetNextTransactionId ();
 
     Ptr<Packet> packet = Create<Packet> ();
-    GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::LOOKUP_RSP, transactionId );
+    GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::LOOKUP_RSP, message.GetTransactionId() );
 
     guChordMessage.SetLookupRsp (message.GetLookupReq ().originator_node_id, message.GetLookupReq ().originator_node_ip_address, atoi(ReverseLookup(GetLocalAddress()).c_str()), GetLocalAddress(), message.GetLookupReq().target_key);
     packet->AddHeader (guChordMessage);
@@ -1089,10 +1083,10 @@ GUChord::ProcessLookupReq (GUChordMessage message, Ipv4Address sourceAddress, ui
 
     CHORD_LOG ("\nLookupRequest<CurrentNodeKey: " << my_node_key_hex << ">: NextHop<NextAddr: " << successor_ip_address << ", NextKey: " << successor_node_key_hex << ", TargetKey: " << message.GetLookupReq().target_key << ">");
 
-    uint32_t transactionId = GetNextTransactionId ();
+    //uint32_t transactionId = GetNextTransactionId ();
 
     Ptr<Packet> packet = Create<Packet> ();
-    GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::LOOKUP_REQ, transactionId );
+    GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::LOOKUP_REQ, message.GetTransactionId() );
 
     guChordMessage.SetLookupReq (message.GetLookupReq ().originator_node_id, message.GetLookupReq ().originator_node_ip_address, message.GetLookupReq().target_key);
     packet->AddHeader (guChordMessage);
@@ -1113,10 +1107,10 @@ GUChord::ProcessLookupReq (GUChordMessage message, Ipv4Address sourceAddress, ui
       {
         // you found the node to forward the message along to
 
-         uint32_t transactionId = GetNextTransactionId ();
+         //uint32_t transactionId = GetNextTransactionId ();
 
          Ptr<Packet> packet = Create<Packet> ();
-         GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::LOOKUP_REQ, transactionId );
+         GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::LOOKUP_REQ, message.GetTransactionId() );
 
          guChordMessage.SetLookupReq (message.GetLookupReq ().originator_node_id, message.GetLookupReq ().originator_node_ip_address, message.GetLookupReq().target_key);
          packet->AddHeader (guChordMessage);
@@ -1128,10 +1122,10 @@ GUChord::ProcessLookupReq (GUChordMessage message, Ipv4Address sourceAddress, ui
       }
     }// end of for
 
-         uint32_t transactionId = GetNextTransactionId ();
+         //uint32_t transactionId = GetNextTransactionId ();
 
          Ptr<Packet> packet = Create<Packet> ();
-         GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::LOOKUP_REQ, transactionId );
+         GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::LOOKUP_REQ, message.GetTransactionId() );
 
          guChordMessage.SetLookupReq (message.GetLookupReq ().originator_node_id, message.GetLookupReq ().originator_node_ip_address, message.GetLookupReq().target_key);
          packet->AddHeader (guChordMessage);
