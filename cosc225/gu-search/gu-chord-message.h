@@ -46,7 +46,9 @@ class GUChordMessage : public Header
         STABILIZE_REQ = 7,
         RING_STATE_PING = 8,
         FIND_SUCCESSOR_REQ = 9,
-        FIND_SUCCESSOR_RSP = 10      
+        FIND_SUCCESSOR_RSP = 10,
+        FIND_PREDECESSOR_REQ = 11,
+        FIND_PREDECESSOR_RSP = 12      
       };
 
     GUChordMessage (GUChordMessage::MessageType messageType, uint32_t transactionId);
@@ -233,6 +235,40 @@ class GUChordMessage : public Header
 
     };
 
+   struct FindPredecessorReq
+    {
+
+        void Print (std::ostream &os) const;
+        uint32_t GetSerializedSize (void) const;
+        void Serialize (Buffer::Iterator &start) const;
+        uint32_t Deserialize (Buffer::Iterator &start);
+        
+        // Payload
+
+        uint32_t originator_node_id;
+        Ipv4Address originator_node_ip_address;
+        std::string start_value;
+        uint32_t start_value_index;
+
+    };
+
+    struct FindPredecessorRsp
+    {
+
+        void Print (std::ostream &os) const;
+        uint32_t GetSerializedSize (void) const;
+        void Serialize (Buffer::Iterator &start) const;
+        uint32_t Deserialize (Buffer::Iterator &start);
+        
+        // Payload
+
+        uint32_t predecessor_node_id;
+        Ipv4Address predecessor_node_ip_address;
+        std::string start_value;
+        uint32_t start_value_index;
+
+    };
+
   private:
     struct
       {
@@ -246,6 +282,8 @@ class GUChordMessage : public Header
         RingStatePing ringStatePing;
         FindSuccessorReq findSuccessorReq;
         FindSuccessorRsp findSuccessorRsp;
+        FindPredecessorReq findPredecessorReq;
+        FindPredecessorRsp findPredecessorRsp;
 
       } m_message;
     
@@ -299,6 +337,12 @@ class GUChordMessage : public Header
     FindSuccessorRsp GetFindSuccessorRsp ();
     void SetFindSuccessorRsp (uint32_t, Ipv4Address, std::string, uint32_t);
     
+    FindPredecessorReq GetFindPredecessorReq ();
+    void SetFindPredecessorReq (uint32_t, Ipv4Address, std::string, uint32_t);
+   
+    FindPredecessorRsp GetFindPredecessorRsp ();
+    void SetFindPredecessorRsp (uint32_t, Ipv4Address, std::string, uint32_t);
+   
 
 }; // class GUChordMessage
 
