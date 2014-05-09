@@ -1106,7 +1106,7 @@ std::cout<< "HI WELLES 3" <<std::endl;
     for (int i = 1; i < 160; i++)
     {
       mpz_init_set_str(curr_finger_key_gmp, finger_table[i].finger_key_hash.c_str(), 16);
-      mpz_init_set_str(curr_finger_key_gmp, finger_table[i-1].finger_key_hash.c_str(), 16);
+      mpz_init_set_str(prev_finger_key_gmp, finger_table[i-1].finger_key_hash.c_str(), 16);
       if (isSuccessor(prev_finger_key_gmp, target_key_gmp, curr_finger_key_gmp))
       {
         // you found the node to forward the message along to
