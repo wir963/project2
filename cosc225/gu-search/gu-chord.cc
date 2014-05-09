@@ -275,6 +275,22 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
                 predecessor_node_key_hex = my_node_key_hex;
                 
                 //FingerInit();
+              mpz_t add_value;
+              mpz_init(add_value);
+              mpz_ui_pow_ui(add_value, 2, 0);
+              
+              mpz_t start_value;
+              mpz_init_set(start_value, add_value);
+              
+              mpz_add(start_value, start_value, my_key_gmp);
+              mpz_mod(start_value, start_value, mod_value);
+              
+              //Ipv4Address target_ip = findSuccessor(start_value);
+              
+              char* temp = NULL;
+              temp = mpz_get_str(temp, 16, start_value);
+              std::string start_value_string(temp);
+              
               for (unsigned int i = 1; i <= 160; i++)
               {
                   FingerTableEntry entry;
