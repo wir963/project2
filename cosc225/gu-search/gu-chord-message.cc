@@ -90,6 +90,12 @@ GUChordMessage::GetSerializedSize (void) const
       case FIND_SUCCESSOR_RSP:
         size += m_message.findSuccessorRsp.GetSerializedSize ();
         break;
+      case LOOKUP_REQ:
+        size += m_message.lookupReq.GetSerializedSize ();
+        break;
+      case LOOKUP_RSP:
+        size += m_message.lookupRsp.GetSerializedSize ();
+        break;
       default:
         NS_ASSERT (false);
     }
@@ -136,6 +142,12 @@ GUChordMessage::Print (std::ostream &os) const
       case FIND_SUCCESSOR_RSP:
         m_message.findSuccessorRsp.Print (os);
         break;
+      case LOOKUP_REQ:
+        m_message.lookupReq.Print (os);
+        break;
+      case LOOKUP_RSP:
+        m_message.lookupRsp.Print (os);
+        break;
       default:
         break;  
     }
@@ -180,6 +192,12 @@ GUChordMessage::Serialize (Buffer::Iterator start) const
         break;
       case FIND_SUCCESSOR_RSP:
         m_message.findSuccessorRsp.Serialize (i);
+        break;
+      case LOOKUP_REQ:
+        m_message.lookupReq.Serialize (i);
+        break;
+      case LOOKUP_RSP:
+        m_message.lookupRsp.Serialize (i);
         break;
       default:
         NS_ASSERT (false);   
@@ -227,6 +245,12 @@ GUChordMessage::Deserialize (Buffer::Iterator start)
         break;
       case FIND_SUCCESSOR_RSP:
         m_message.findSuccessorRsp.Deserialize (i);
+        break;
+      case LOOKUP_REQ:
+        m_message.lookupReq.Deserialize (i);
+        break;
+      case LOOKUP_RSP:
+        m_message.lookupRsp.Deserialize (i);
         break;
       default:
         NS_ASSERT (false);
@@ -865,6 +889,145 @@ GUChordMessage::GetFindSuccessorRsp ()
   return m_message.findSuccessorRsp;
 }
 
+/* FIND_LOOKUP_REQ */
+
+uint32_t 
+GUChordMessage::LookupReq::GetSerializedSize (void) const
+{
+    uint32_t size;
+    size = IPV4_ADDRESS_SIZE + sizeof(uint32_t) + sizeof(uint16_t) + target_key.length();
+    return size;
+}
+
+void
+GUChordMessage::LookupReq::Print (std::ostream &os) const
+{
+  //os << "StabilizeReq:: Message: " << stabilizeReqMessage << "\n";
+}
+
+void
+GUChordMessage::LookupReq::Serialize (Buffer::Iterator &start) const
+{
+    start.WriteU32 (originator_node_id);
+    start.WriteHtonU32(originator_node_ip_address.Get());
+
+    start.WriteU16 (target_key.length ());
+    
+    start.Write ((uint8_t *) (const_cast<char*> (target_key.c_str())), target_key.length());
+}
+
+uint32_t
+GUChordMessage::LookupReq::Deserialize (Buffer::Iterator &start)
+{  
+    originator_node_id = start.ReadU32();
+    originator_node_ip_address = Ipv4Address (start.ReadNtohU32 ());
+    
+    uint16_t length = start.ReadU16 ();
+    char* str = (char*) malloc (length);
+    start.Read ((uint8_t*)str, length);
+    target_key = std::string (str, length);
+    free (str);
+
+    return LookupReq::GetSerializedSize ();
+}
+
+void
+GUChordMessage::SetLookupReq (uint32_t node_id, Ipv4Address ip_address, std::string key)
+{
+  if (m_messageType == 0)
+    {
+      m_messageType = LOOKUP_REQ;
+    }
+  else
+    {
+      NS_ASSERT (m_messageType == LOOKUP_REQ);
+    }
+    m_message.lookupReq.originator_node_id = node_id;
+    m_message.lookupReq.originator_node_ip_address = ip_address;
+    m_message.lookupReq.target_key = key;
+}
+
+GUChordMessage::LookupReq
+GUChordMessage::GetLookupReq ()
+{
+  return m_message.lookupReq;
+}
+
+/* LOOKUP_RSP */
+
+uint32_t 
+GUChordMessage::LookupRsp::GetSerializedSize (void) const
+{
+    uint32_t size;
+    size = IPV4_ADDRESS_SIZE*2 + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint16_t) + target_key.length();
+    return size;
+}
+
+void
+GUChordMessage::LookupRsp::Print (std::ostream &os) const
+{
+  //os << "StabilizeReq:: Message: " << stabilizeReqMessage << "\n";
+}
+
+void
+GUChordMessage::LookupRsp::Serialize (Buffer::Iterator &start) const
+{
+    
+    start.WriteU32 (originator_node_id);
+    start.WriteHtonU32(originator_node_ip_address.Get());
+
+    start.WriteU32 (successor_node_id);
+    start.WriteHtonU32(successor_node_ip_address.Get());
+
+    start.WriteU16 (target_key.length ());
+
+    start.Write ((uint8_t *) (const_cast<char*> (target_key.c_str())), target_key.length());
+
+}
+
+uint32_t
+GUChordMessage::LookupRsp::Deserialize (Buffer::Iterator &start)
+{  
+    
+    originator_node_id = start.ReadU32();
+    originator_node_ip_address = Ipv4Address (start.ReadNtohU32 ());
+
+    successor_node_id = start.ReadU32();
+    successor_node_ip_address = Ipv4Address (start.ReadNtohU32 ());
+    
+    uint16_t length = start.ReadU16 ();
+    char* str = (char*) malloc (length);
+    start.Read ((uint8_t*)str, length);
+    target_key = std::string (str, length);
+    free (str);
+  
+    return LookupRsp::GetSerializedSize ();
+}
+
+void
+GUChordMessage::SetLookupRsp (uint32_t orig_node_id, Ipv4Address orig_ip_address, uint32_t succ_node_id, Ipv4Address succ_ip_address, std::string key)
+{
+  if (m_messageType == 0)
+    {
+      m_messageType = LOOKUP_RSP;
+    }
+  else
+    {
+      NS_ASSERT (m_messageType == LOOKUP_RSP);
+    }
+
+    m_message.lookupRsp.originator_node_id = orig_node_id;
+    m_message.lookupRsp.originator_node_ip_address = orig_ip_address;
+    m_message.lookupRsp.successor_node_id = succ_node_id;
+    m_message.lookupRsp.successor_node_ip_address = succ_ip_address;
+    m_message.lookupRsp.target_key = key;
+}
+
+GUChordMessage::LookupRsp
+GUChordMessage::GetLookupRsp ()
+{
+  return m_message.lookupRsp;
+}
 
 //
 //
