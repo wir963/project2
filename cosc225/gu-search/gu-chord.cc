@@ -387,10 +387,10 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
           guChordMessage2.SetDepartureReq (my_id, my_ip, successor_id, successor_ip_address);
           packet2->AddHeader (guChordMessage2);
           m_socket->SendTo (packet2, 0 , InetSocketAddress (predecessor_ip_address, m_appPort));
-
+          
           m_chordLeave (successor_ip_address, successor_id);
            
-          finger_table.clear();
+          //finger_table.clear();
     }
 
     else if (command == "ringstate" || command == "RINGSTATE")
@@ -1079,7 +1079,7 @@ GUChord::ProcessLookupReq (GUChordMessage message, Ipv4Address sourceAddress, ui
   mpz_init_set_str(predecessor_key_gmp, ipHash(predecessor_ip_address).c_str(), 16);
   mpz_init_set_str(successor_key_gmp, ipHash(successor_ip_address).c_str(), 16);
   // first check if you are the right key
-  if(isSuccessor(predecessor_key_gmp, target_key_gmp, my_key_gmp))
+  if(isInBetween(predecessor_key_gmp, target_key_gmp, my_key_gmp))
   {
 
     //uint32_t transactionId = GetNextTransactionId ();
@@ -1093,7 +1093,7 @@ GUChord::ProcessLookupReq (GUChordMessage message, Ipv4Address sourceAddress, ui
 
   }
 
-  else if(isSuccessor(my_key_gmp, target_key_gmp, successor_key_gmp ))
+  else if(isInBetween(my_key_gmp, target_key_gmp, successor_key_gmp ))
   {
 
     CHORD_LOG ("\nLookupRequest<CurrentNodeKey: " << my_node_key_hex << ">: NextHop<NextAddr: " << successor_ip_address << ", NextKey: " << successor_node_key_hex << ", TargetKey: " << message.GetLookupReq().target_key << ">");
@@ -1118,8 +1118,9 @@ GUChord::ProcessLookupReq (GUChordMessage message, Ipv4Address sourceAddress, ui
     {
       mpz_init_set_str(curr_finger_key_gmp, finger_table[i].finger_key_hash.c_str(), 16);
       mpz_init_set_str(prev_finger_key_gmp, finger_table[i-1].finger_key_hash.c_str(), 16);
-      if (isSuccessor(prev_finger_key_gmp, target_key_gmp, curr_finger_key_gmp))
+      if (isInBetween(prev_finger_key_gmp, target_key_gmp, curr_finger_key_gmp))
       {
+        
         // you found the node to forward the message along to
 
          //uint32_t transactionId = GetNextTransactionId ();
