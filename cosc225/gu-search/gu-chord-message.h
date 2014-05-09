@@ -47,9 +47,8 @@ class GUChordMessage : public Header
         RING_STATE_PING = 8,
         FIND_SUCCESSOR_REQ = 9,
         FIND_SUCCESSOR_RSP = 10,
-        FIND_PREDECESSOR_REQ = 11,
-        FIND_PREDECESSOR_RSP = 12,
-        FIND_PREDECESSOR_ACK = 13      
+        LOOKUP_REQ = 11,
+        LOOKUP_RSP = 12      
       };
 
     GUChordMessage (GUChordMessage::MessageType messageType, uint32_t transactionId);
@@ -236,6 +235,40 @@ class GUChordMessage : public Header
 
     };
 
+    struct LookupReq
+    {
+
+        void Print (std::ostream &os) const;
+        uint32_t GetSerializedSize (void) const;
+        void Serialize (Buffer::Iterator &start) const;
+        uint32_t Deserialize (Buffer::Iterator &start);
+        
+        // Payload
+
+        uint32_t originator_node_id;
+        Ipv4Address originator_node_ip_address;
+        std::string target_key;
+
+    };
+
+    struct LookupRsp
+    {
+
+        void Print (std::ostream &os) const;
+        uint32_t GetSerializedSize (void) const;
+        void Serialize (Buffer::Iterator &start) const;
+        uint32_t Deserialize (Buffer::Iterator &start);
+        
+        // Payload
+
+        uint32_t originator_node_id;
+        Ipv4Address originator_node_ip_address;
+        uint32_t successor_node_id;
+        Ipv4Address successor_node_ip_address;
+        std::string target_key;
+
+    };
+
   private:
     struct
       {
@@ -249,6 +282,8 @@ class GUChordMessage : public Header
         RingStatePing ringStatePing;
         FindSuccessorReq findSuccessorReq;
         FindSuccessorRsp findSuccessorRsp;
+        LookupReq lookupReq;
+        LookupRsp lookupRsp;
 
       } m_message;
     
@@ -302,6 +337,11 @@ class GUChordMessage : public Header
     FindSuccessorRsp GetFindSuccessorRsp ();
     void SetFindSuccessorRsp (uint32_t, Ipv4Address, std::string, uint32_t);
    
+    LookupReq GetLookupReq ();
+    void SetLookupReq (uint32_t, Ipv4Address, std::string);
+   
+    LookupRsp GetLookupRsp ();
+    void SetLookupRsp (uint32_t, Ipv4Address, uint32_t, Ipv4Address, std::string);
 
 }; // class GUChordMessage
 
