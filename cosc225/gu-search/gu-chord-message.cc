@@ -90,15 +90,6 @@ GUChordMessage::GetSerializedSize (void) const
       case FIND_SUCCESSOR_RSP:
         size += m_message.findSuccessorRsp.GetSerializedSize ();
         break;
-      case FIND_PREDECESSOR_REQ:
-        size += m_message.findPredecessorReq.GetSerializedSize ();
-        break;
-      case FIND_PREDECESSOR_RSP:
-        size += m_message.findPredecessorRsp.GetSerializedSize ();
-        break;
-      case FIND_PREDECESSOR_ACK:
-        size += m_message.findPredecessorAck.GetSerializedSize ();
-        break;
       default:
         NS_ASSERT (false);
     }
@@ -145,15 +136,6 @@ GUChordMessage::Print (std::ostream &os) const
       case FIND_SUCCESSOR_RSP:
         m_message.findSuccessorRsp.Print (os);
         break;
-      case FIND_PREDECESSOR_REQ:
-        m_message.findPredecessorReq.Print (os);
-        break;
-      case FIND_PREDECESSOR_RSP:
-        m_message.findPredecessorRsp.Print (os);
-        break;
-      case FIND_PREDECESSOR_ACK:
-        m_message.findPredecessorAck.Print (os);
-        break;
       default:
         break;  
     }
@@ -198,15 +180,6 @@ GUChordMessage::Serialize (Buffer::Iterator start) const
         break;
       case FIND_SUCCESSOR_RSP:
         m_message.findSuccessorRsp.Serialize (i);
-        break;
-      case FIND_PREDECESSOR_REQ:
-        m_message.findPredecessorReq.Serialize (i);
-        break;
-      case FIND_PREDECESSOR_RSP:
-        m_message.findPredecessorRsp.Serialize (i);
-        break;
-      case FIND_PREDECESSOR_ACK:
-        m_message.findPredecessorAck.Serialize (i);
         break;
       default:
         NS_ASSERT (false);   
@@ -254,15 +227,6 @@ GUChordMessage::Deserialize (Buffer::Iterator start)
         break;
       case FIND_SUCCESSOR_RSP:
         m_message.findSuccessorRsp.Deserialize (i);
-        break;
-      case FIND_PREDECESSOR_REQ:
-        m_message.findPredecessorReq.Deserialize (i);
-        break;
-      case FIND_PREDECESSOR_RSP:
-        m_message.findPredecessorRsp.Deserialize (i);
-        break;
-      case FIND_PREDECESSOR_ACK:
-        m_message.findPredecessorAck.Deserialize (i);
         break;
       default:
         NS_ASSERT (false);

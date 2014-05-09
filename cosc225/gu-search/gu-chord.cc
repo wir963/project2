@@ -580,15 +580,6 @@ GUChord::RecvMessage (Ptr<Socket> socket)
       case GUChordMessage::FIND_SUCCESSOR_RSP:
         ProcessFindSuccessorRsp(message, sourceAddress, sourcePort);
         break;
-      case GUChordMessage::FIND_PREDECESSOR_REQ:
-        ProcessFindPredecessorReq (message, sourceAddress, sourcePort);
-        break;
-      case GUChordMessage::FIND_PREDECESSOR_RSP:
-        ProcessFindPredecessorRsp (message, sourceAddress, sourcePort);
-        break;
-      case GUChordMessage::FIND_PREDECESSOR_ACK:
-        ProcessFindPredecessorAck (message, sourceAddress, sourcePort);
-        break;
       default:
         ERROR_LOG ("Unknown Message Type!");
         break;
@@ -651,8 +642,10 @@ GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint
     mpz_init_set_str(successor_key_gmp, successor_node_key_hex.c_str() , 16);
 
     // request hash is greater than my hash but less than my successor's hash - obvious case
-    if(isSuccessor(my_key_gmp, lookup_key_gmp, successor_key_gmp))
-    {    
+
+    if (mpz_cmp(my_key_gmp, request_key_gmp) < 0 && mpz_cmp(request_key_gmp, successor_key_gmp) < 0)
+    {     
+
         uint32_t transactionId = GetNextTransactionId ();
 
         CHORD_LOG ("Sending JOIN_RSP to Node: " << ReverseLookup(successor_ip_address) << " IP: " << successor_ip_address << " transactionId: " << transactionId);
@@ -660,7 +653,50 @@ GUChord::ProcessJoinReq (GUChordMessage message, Ipv4Address sourceAddress, uint
         message.SetTransactionId(transactionId); 
   
         SendJoinRsp(message, sourcePort);
+
     }
+    // my hash is greater than my successor's hash AND request hash is greater my hash
+    // --> adding the biggest hash to the ring
+    else if (mpz_cmp(my_key_gmp, successor_key_gmp) > 0 && mpz_cmp(request_key_gmp, my_key_gmp) > 0)
+    {
+
+        uint32_t transactionId = GetNextTransactionId ();
+
+        CHORD_LOG ("Sending JOIN_RSP to Node: " << ReverseLookup(successor_ip_address) << " IP: " << successor_ip_address << " transactionId: " << transactionId);
+
+        message.SetTransactionId(transactionId);       
+
+        SendJoinRsp(message, sourcePort);
+    }
+    // my hash is greater than my successor's hash AND request hash is less than successor's hash
+    // --> adding the smallest hash to the ring
+    else if (mpz_cmp(my_key_gmp, successor_key_gmp) > 0 && mpz_cmp(request_key_gmp, successor_key_gmp) < 0)
+    {
+
+        uint32_t transactionId = GetNextTransactionId ();
+
+        CHORD_LOG ("Sending JOIN_RSP to Node: " << ReverseLookup(successor_ip_address) << " IP: " << successor_ip_address << " transactionId: " << transactionId);
+
+        message.SetTransactionId(transactionId);       
+
+        SendJoinRsp(message, sourcePort);
+    }
+    // only one node in the ring - obvious
+    else if (mpz_cmp(successor_key_gmp, my_key_gmp) == 0)
+    {
+
+        uint32_t transactionId = GetNextTransactionId ();
+
+        CHORD_LOG ("Sending JOIN_RSP to Node: " << ReverseLookup(sourceAddress) << " IP: " << sourceAddress << " transactionId: " << transactionId);
+
+        GUChordMessage resp = GUChordMessage (GUChordMessage::JOIN_RSP, transactionId);
+        resp.SetJoinRsp (message.GetJoinReq(), successor_id, successor_ip_address);
+        Ptr<Packet> packet = Create<Packet> ();
+        packet->AddHeader (resp);
+        m_socket->SendTo (packet, 0 , InetSocketAddress (sourceAddress, sourcePort));
+
+    }
+
     else
     {
         // need to keep searching so forward the message along
@@ -818,11 +854,32 @@ GUChord::ProcessStabilizeReq (GUChordMessage message, Ipv4Address sourceAddress,
     mpz_t successor_key_gmp;        
     mpz_init_set_str(successor_key_gmp, successor_node_key_hex.c_str() , 16);
 
-    if(isSuccessor(my_key_gmp, lookup_key_gmp, successor_key_gmp))
+    // obvious case
+    if (mpz_cmp(sender_key_gmp, my_key_gmp) < 0 && mpz_cmp(sender_key_gmp, predecessor_key_gmp) > 0)
     {
-      predecessor_id = sender_id;
-      predecessor_ip_address = message.GetStabilizeReq().sender_node_ip_address;
-      predecessor_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
+        predecessor_id = sender_id;
+        predecessor_ip_address = message.GetStabilizeReq().sender_node_ip_address;
+        predecessor_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
+    }
+    // only one node in the network case
+    else if (mpz_cmp(my_key_gmp, predecessor_key_gmp) == 0)
+    {
+        predecessor_id = sender_id;
+        predecessor_ip_address = message.GetStabilizeReq().sender_node_ip_address;
+        predecessor_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
+    }
+
+    else if (mpz_cmp(my_key_gmp, predecessor_key_gmp) < 0 && mpz_cmp(sender_key_gmp, predecessor_key_gmp) > 0 )
+    {
+        predecessor_id = sender_id;
+        predecessor_ip_address = message.GetStabilizeReq().sender_node_ip_address;
+        predecessor_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
+    }
+    else if (mpz_cmp(my_key_gmp, predecessor_key_gmp) < 0 && mpz_cmp(sender_key_gmp, my_key_gmp) < 0)
+    {
+        predecessor_id = sender_id;
+        predecessor_ip_address = message.GetStabilizeReq().sender_node_ip_address;
+        predecessor_node_key_hex = ipHash(message.GetStabilizeReq().sender_node_ip_address);
     }
     else if (predecessor_node_key_hex.compare(" ") == -1)
     { 
