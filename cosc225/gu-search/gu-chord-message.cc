@@ -96,6 +96,9 @@ GUChordMessage::GetSerializedSize (void) const
       case FIND_PREDECESSOR_RSP:
         size += m_message.findPredecessorRsp.GetSerializedSize ();
         break;
+      case FIND_PREDECESSOR_ACK:
+        size += m_message.findPredecessorAck.GetSerializedSize ();
+        break;
       default:
         NS_ASSERT (false);
     }
@@ -148,6 +151,9 @@ GUChordMessage::Print (std::ostream &os) const
       case FIND_PREDECESSOR_RSP:
         m_message.findPredecessorRsp.Print (os);
         break;
+      case FIND_PREDECESSOR_ACK:
+        m_message.findPredecessorAck.Print (os);
+        break;
       default:
         break;  
     }
@@ -198,6 +204,9 @@ GUChordMessage::Serialize (Buffer::Iterator start) const
         break;
       case FIND_PREDECESSOR_RSP:
         m_message.findPredecessorRsp.Serialize (i);
+        break;
+      case FIND_PREDECESSOR_ACK:
+        m_message.findPredecessorAck.Serialize (i);
         break;
       default:
         NS_ASSERT (false);   
@@ -251,6 +260,9 @@ GUChordMessage::Deserialize (Buffer::Iterator start)
         break;
       case FIND_PREDECESSOR_RSP:
         m_message.findPredecessorRsp.Deserialize (i);
+        break;
+      case FIND_PREDECESSOR_ACK:
+        m_message.findPredecessorAck.Deserialize (i);
         break;
       default:
         NS_ASSERT (false);
@@ -1059,6 +1071,58 @@ GUChordMessage::FindPredecessorRsp
 GUChordMessage::GetFindPredecessorRsp ()
 {
   return m_message.findPredecessorRsp;
+}
+
+/* FIND_PREDECESSOR_RSP */
+
+uint32_t 
+GUChordMessage::FindPredecessorAck::GetSerializedSize (void) const
+{
+    uint32_t size;
+    size = sizeof(uint32_t);
+    return size;
+}
+
+void
+GUChordMessage::FindPredecessorRsp::Print (std::ostream &os) const
+{
+  //os << "StabilizeReq:: Message: " << stabilizeReqMessage << "\n";
+}
+
+void
+GUChordMessage::FindPredecessorAck::Serialize (Buffer::Iterator &start) const
+{
+    start.WriteU32 (start_value_index);
+}
+
+uint32_t
+GUChordMessage::FindPredecessorAck::Deserialize (Buffer::Iterator &start)
+{ 
+
+    start_value_index = start.ReadU32();
+  
+    return FindPredecessorAck::GetSerializedSize ();
+}
+
+void
+GUChordMessage::SetFindPredecessorAck (uint32_t index)
+{
+  if (m_messageType == 0)
+    {
+      m_messageType = FIND_PREDECESSOR_ACK;
+    }
+  else
+    {
+      NS_ASSERT (m_messageType == FIND_PREDECESSOR_ACK);
+    }
+
+    m_message.findPredecessorAck.start_value_index = index;
+}
+
+GUChordMessage::FindPredecessorAck
+GUChordMessage::GetFindPredecessorAck ()
+{
+  return m_message.findPredecessorAck;
 }
 
 //

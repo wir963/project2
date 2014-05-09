@@ -48,7 +48,8 @@ class GUChordMessage : public Header
         FIND_SUCCESSOR_REQ = 9,
         FIND_SUCCESSOR_RSP = 10,
         FIND_PREDECESSOR_REQ = 11,
-        FIND_PREDECESSOR_RSP = 12      
+        FIND_PREDECESSOR_RSP = 12,
+        FIND_PREDECESSOR_ACK = 13      
       };
 
     GUChordMessage (GUChordMessage::MessageType messageType, uint32_t transactionId);
@@ -269,6 +270,20 @@ class GUChordMessage : public Header
 
     };
 
+    struct FindPredecessorAck
+    {
+
+        void Print (std::ostream &os) const;
+        uint32_t GetSerializedSize (void) const;
+        void Serialize (Buffer::Iterator &start) const;
+        uint32_t Deserialize (Buffer::Iterator &start);
+        
+        // Payload
+
+        uint32_t start_value_index;
+
+    };
+
   private:
     struct
       {
@@ -284,6 +299,7 @@ class GUChordMessage : public Header
         FindSuccessorRsp findSuccessorRsp;
         FindPredecessorReq findPredecessorReq;
         FindPredecessorRsp findPredecessorRsp;
+        FindPredecessorRsp findPredecessorAck;
 
       } m_message;
     
@@ -344,6 +360,9 @@ class GUChordMessage : public Header
     void SetFindPredecessorRsp (uint32_t, Ipv4Address, std::string, uint32_t);
     void SetFindPredecessorRsp (FindPredecessorRsp);
     void SetFindPredecessorRsp (FindPredecessorReq);
+
+    FindPredecessorReq GetFindPredecessorAck ();
+    void SetFindPredecessorAck (uint32_t);
    
 
 }; // class GUChordMessage
