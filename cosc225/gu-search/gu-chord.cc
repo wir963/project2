@@ -335,14 +335,13 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
 
           if(mpz_cmp(recipient_key_gmp, my_key_gmp) == 0) {
 
-                successor_id = my_id;
-                successor_ip_address = my_ip;
-                successor_node_key_hex = my_node_key_hex;
-                predecessor_id = my_id;
-                predecessor_ip_address = my_ip;
-                predecessor_node_key_hex = my_node_key_hex;
+              successor_id = my_id;
+              successor_ip_address = my_ip;
+              successor_node_key_hex = my_node_key_hex;
+              predecessor_id = my_id;
+              predecessor_ip_address = my_ip;
+              predecessor_node_key_hex = my_node_key_hex;
                 
-                //FingerInit();
               mpz_t mod_value;
               mpz_init_set_ui(mod_value, 0);
               mpz_ui_pow_ui(mod_value, 2, 160);
@@ -350,19 +349,19 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
               for (unsigned int i = 1; i <= 160; i++)
               {
 
-                   mpz_t add_value;
-                   mpz_init(add_value);
-                   mpz_ui_pow_ui(add_value, 2, i-1);
-              
-                   mpz_t start_value;
-                   mpz_init_set(start_value, add_value);
-              
-                   mpz_add(start_value, start_value, my_key_gmp);
-                   mpz_mod(start_value, start_value, mod_value);
-              
-                   char* temp = NULL;
-                   temp = mpz_get_str(temp, 16, start_value);
-                   std::string start_value_string(temp);
+                  mpz_t add_value;
+                  mpz_init(add_value);
+                  mpz_ui_pow_ui(add_value, 2, i-1);
+             
+                  mpz_t start_value;
+                  mpz_init_set(start_value, add_value);
+             
+                  mpz_add(start_value, start_value, my_key_gmp);
+                  mpz_mod(start_value, start_value, mod_value);
+             
+                  char* temp = NULL;
+                  temp = mpz_get_str(temp, 16, start_value);
+                  std::string start_value_string(temp);
 
                   FingerTableEntry entry;
                   entry.start_value = start_value_string;
