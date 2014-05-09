@@ -86,6 +86,14 @@ class GUChord : public GUApplication
 
     Ipv4Address findSuccessor();
 
+    void FindPredecessor(int);
+
+    void ProcessFindPredecessorReq (GUChordMessage, Ipv4Address, uint16_t);
+
+    bool isSuccessor(mpz_t, mpz_t, mpz_t);
+
+    void UpdateOtherTables();
+
     struct FingerTableEntry {
 
         std::string start_value;

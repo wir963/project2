@@ -980,7 +980,7 @@ GUChord::ProcessFindSuccessorRsp (GUChordMessage message, Ipv4Address sourceAddr
     }
     else {
         // call the update existing finger tables method
-        UpdateOtherTables()
+        //UpdateOtherTables();
     }
     
  
@@ -1007,14 +1007,18 @@ void GUChord::FindPredecessor(int index)
 
     mpz_t add_value;
     mpz_init(add_value);
-    mpz_ui_pow_ui(add_value, 2, i-1);
+    mpz_ui_pow_ui(add_value, 2, index-1);
 
     mpz_t start_value;
     mpz_init_set(start_value, add_value); 
 
-    mpz_sub(start_value, start_value, my_key_gmp);
+    mpz_sub(start_value, my_key_gmp, start_value);
     mpz_mod(start_value, start_value, mod_value);
     // have the correct value
+
+    char* temp = NULL;
+    temp = mpz_get_str(temp, 16, start_value);
+    std::string start_value_string(temp);
 
     uint32_t transactionId = GetNextTransactionId ();
 
@@ -1032,15 +1036,15 @@ void
 GUChord::ProcessFindPredecessorReq (GUChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
 {
           std::string fromNode = ReverseLookup (sourceAddress);
-        CHORD_LOG ("Received FIND_SUCCESSOR_REQ, From Node: " << fromNode);
+        CHORD_LOG ("Received FIND_PREDECESSOR_REQ, From Node: " << fromNode);
 
-        std::string originator_node_key_hex = ipHash(message.GetFindSuccessorReq().originator_node_ip_address);
+        std::string originator_node_key_hex = ipHash(message.GetFindPredecessorReq().originator_node_ip_address);
 
         mpz_t my_key_gmp;
         mpz_init_set_str(my_key_gmp, my_node_key_hex.c_str() , 16);
 
         mpz_t lookup_key_gmp;
-        mpz_init_set_str(lookup_key_gmp, message.GetFindSuccessorReq().start_value.c_str() , 16);
+        mpz_init_set_str(lookup_key_gmp, message.GetFindPredecessorReq().start_value.c_str() , 16);
 
         mpz_t successor_key_gmp;
         mpz_init_set_str(successor_key_gmp, successor_node_key_hex.c_str() , 16);
@@ -1049,13 +1053,31 @@ GUChord::ProcessFindPredecessorReq (GUChordMessage message, Ipv4Address sourceAd
 
         if (isSuccessor(my_key_gmp, lookup_key_gmp, successor_key_gmp))
         {
+            // YOU are the node --> maybe update your finger table
+            std::string originator_node_key_hex = ipHash(message.GetFindPredecessorReq().originator_node_ip_address);
+        mpz_t originator_key_gmp;
+        mpz_init_set_str(originator_key_gmp, originator_node_key_hex.c_str() , 16);
+        // need the hash of this nodes finger[index]
+        int index = message.GetFindSuccessorReq().start_value_index;
+        mpz_t finger_key_gmp;
+        mpz_init_set_str(finger_key_gmp, finger_table[index].finger_key_hash.c_str() , 16);
+        // maybe update the finger
+        
+            if (isSuccessor(my_key_gmp, originator_key_gmp, finger_key_gmp))
+            {
+              // need to update that finger
+                finger_table[index].finger_ip_address = message.GetFindPredecessorReq().originator_node_ip_address;
+                finger_table[index].finger_node_id = message.GetFindPredecessorReq().originator_node_id;
+                finger_table[index].finger_key_hash = originator_node_key_hex;
+                // here is where you use Predecessor Response
 
+            }
             CHORD_LOG ("Sending FIND_PREDECESSOR_RSP to Node: " << ReverseLookup(message.GetFindSuccessorReq().originator_node_ip_address) << " IP: " << message.GetFindPredecessorReq().originator_node_ip_address << " transactionId: " << transactionId); 
 
             Ptr<Packet> packet = Create<Packet> ();
             GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::FIND_PREDECESSOR_RSP, transactionId );
 
-            guChordMessage.SetFindPredecessorRsp (successor_id, successor_ip_address, message.GetFindSuccessorReq().start_value, message.GetFindSuccessorReq().start_value_index);
+            guChordMessage.SetFindPredecessorRsp (atoi(ReverseLookup(GetLocalAddress()).c_str()), GetLocalAddress(), message.GetFindSuccessorReq().start_value, message.GetFindSuccessorReq().start_value_index);
             packet->AddHeader (guChordMessage);
             m_socket->SendTo (packet, 0 , InetSocketAddress (message.GetFindSuccessorReq().originator_node_ip_address, m_appPort));
         }
@@ -1064,9 +1086,9 @@ GUChord::ProcessFindPredecessorReq (GUChordMessage message, Ipv4Address sourceAd
             CHORD_LOG ("Sending FIND_SUCCESSOR_REQ to Node: " << ReverseLookup(successor_ip_address) << " IP: " << successor_ip_address << " transactionId: " << transactionId); 
 
             Ptr<Packet> packet = Create<Packet> ();
-            GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::FIND_SUCCESSOR_REQ, transactionId );
+            GUChordMessage guChordMessage = GUChordMessage (GUChordMessage::FIND_PREDECESSOR_REQ, transactionId );
 
-            guChordMessage.SetFindSuccessorReq (message.GetFindSuccessorReq ().originator_node_id, message.GetFindSuccessorReq().originator_node_ip_address, message.GetFindSuccessorReq().start_value, message.GetFindSuccessorReq().start_value_index);
+            guChordMessage.SetFindPredecessorReq (message.GetFindPredecessorReq ().originator_node_id, message.GetFindPredecessorReq().originator_node_ip_address, message.GetFindPredecessorReq().start_value, message.GetFindPredecessorReq().start_value_index);
             packet->AddHeader (guChordMessage);
             m_socket->SendTo (packet, 0 , InetSocketAddress (successor_ip_address, m_appPort));
 
@@ -1075,7 +1097,7 @@ GUChord::ProcessFindPredecessorReq (GUChordMessage message, Ipv4Address sourceAd
 
 }
 
-bool GUChord::isSuccessor(my_key_gmp, lookup_key_gmp, successor_key_gmp)
+bool GUChord::isSuccessor(mpz_t my_key_gmp, mpz_t lookup_key_gmp, mpz_t successor_key_gmp)
 {
   if(mpz_cmp(lookup_key_gmp, successor_key_gmp) <= 0 && mpz_cmp(lookup_key_gmp, my_key_gmp) > 0)
         return true;
