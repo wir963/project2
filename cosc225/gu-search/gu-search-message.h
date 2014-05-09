@@ -21,6 +21,7 @@
 #include "ns3/ipv4-address.h"
 #include "ns3/packet.h"
 #include "ns3/object.h"
+#include <set>
 
 using namespace ns3;
 
@@ -37,6 +38,9 @@ class GUSearchMessage : public Header
       {
         PING_REQ = 1,
         PING_RSP = 2,
+        STORE_REQ = 3,
+        FETCH_REQ = 4,
+        FETCH_RSP = 5,
         // Define extra message types when needed       
       };
 
@@ -102,12 +106,47 @@ class GUSearchMessage : public Header
         std::string pingMessage;
       };
 
+    struct StoreReq
+      {
+        void Print (std::ostream &os) const;
+        uint32_t GetSerializedSize (void) const;
+        void Serialize (Buffer::Iterator &start) const;
+        uint32_t Deserialize (Buffer::Iterator &start);
+        // Payload
+        std::string key;
+        std::set<std::string> documents;
+      };
+    struct FetchReq
+      {
+        void Print (std::ostream &os) const;
+        uint32_t GetSerializedSize (void) const;
+        void Serialize (Buffer::Iterator &start) const;
+        uint32_t Deserialize (Buffer::Iterator &start);
+        // Payload
+        uint32_t originatorNum;
+        std::string key;
+        std::set<std::string> searchKeys;
+        std::set<std::string> documents;
+      };
+
+    struct FetchRsp
+      {
+        void Print (std::ostream &os) const;
+        uint32_t GetSerializedSize (void) const;
+        void Serialize (Buffer::Iterator &start) const;
+        uint32_t Deserialize (Buffer::Iterator &start);
+        // Payload
+        std::set<std::string> documents;
+      };  
 
   private:
     struct
       {
         PingReq pingReq;
         PingRsp pingRsp;
+        StoreReq storeReq;
+        FetchReq fetchReq;
+        FetchRsp fetchRsp;
       } m_message;
     
   public:
@@ -132,6 +171,39 @@ class GUSearchMessage : public Header
      *  \param message Payload String
      */
     void SetPingRsp (std::string message);
+    
+    
+    /**
+     *  \returns StoreReq Struct
+     */
+    StoreReq GetStoreReq ();
+
+    /**
+     *  \brief Sets StoreReq message params
+     *  \param key 
+     */
+    void SetStoreReq (std::string key, std::set<std::string> documents);
+    
+    /**
+     *  \returns PingReq Struct
+     */
+    FetchReq GetFetchReq ();
+
+    /**
+     *  \brief Sets FetchReq message params
+     *  \param message Payload String
+     */
+
+    void SetFetchReq (uint32_t originatorNum, std::string key, std::set<std::string> searchKeys, std::set<std::string> documents);
+    /**
+     * \returns PingRsp Struct
+     */
+    FetchRsp GetFetchRsp ();
+    /**
+     *  \brief Sets FetchRsp message params
+     *  \param message Payload String
+     */
+    void SetFetchRsp (std::set<std::string> documents);
 
 }; // class GUSearchMessage
 

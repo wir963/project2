@@ -66,6 +66,15 @@ GUSearchMessage::GetSerializedSize (void) const
       case PING_RSP:
         size += m_message.pingRsp.GetSerializedSize ();
         break;
+      case STORE_REQ:
+        size += m_message.storeReq.GetSerializedSize ();
+        break;  
+      case FETCH_REQ:
+        size += m_message.fetchReq.GetSerializedSize ();
+        break;
+      case FETCH_RSP:
+        size += m_message.fetchRsp.GetSerializedSize ();
+        break;
       default:
         NS_ASSERT (false);
     }
@@ -88,6 +97,15 @@ GUSearchMessage::Print (std::ostream &os) const
       case PING_RSP:
         m_message.pingRsp.Print (os);
         break;
+      case STORE_REQ:
+        m_message.storeReq.Print (os);
+        break;  
+      case FETCH_REQ:
+        m_message.fetchReq.Print (os);
+        break;
+      case FETCH_RSP:
+        m_message.fetchRsp.Print (os);
+        break;        
       default:
         break;  
     }
@@ -109,6 +127,15 @@ GUSearchMessage::Serialize (Buffer::Iterator start) const
       case PING_RSP:
         m_message.pingRsp.Serialize (i);
         break;
+      case STORE_REQ:
+        m_message.storeReq.Serialize (i);
+        break;  
+      case FETCH_REQ:
+        m_message.fetchReq.Serialize (i);
+        break;
+      case FETCH_RSP:
+        m_message.fetchRsp.Serialize (i);
+        break;         
       default:
         NS_ASSERT (false);   
     }
@@ -131,6 +158,15 @@ GUSearchMessage::Deserialize (Buffer::Iterator start)
         break;
       case PING_RSP:
         size += m_message.pingRsp.Deserialize (i);
+        break;
+      case STORE_REQ:
+        size += m_message.storeReq.Deserialize (i);
+        break;  
+      case FETCH_REQ:
+        size += m_message.fetchReq.Deserialize (i);
+        break;
+      case FETCH_RSP:
+        size += m_message.fetchRsp.Deserialize (i);
         break;
       default:
         NS_ASSERT (false);
@@ -244,6 +280,273 @@ GUSearchMessage::PingRsp
 GUSearchMessage::GetPingRsp ()
 {
   return m_message.pingRsp;
+}
+
+/* STORE_REQ */
+uint32_t 
+GUSearchMessage::StoreReq::GetSerializedSize (void) const
+{
+  uint32_t size;
+  size = sizeof(uint16_t) + key.length();
+  size += sizeof(uint32_t);
+  for (std::set<std::string>::iterator it = documents.begin(); it != documents.end(); it++) {
+    size += sizeof(uint16_t);
+    size += (*it).length();
+  }
+  return size;
+}
+
+void
+GUSearchMessage::StoreReq::Print (std::ostream &os) const
+{
+  os << "StoreReq:: Key: " << key << " Documents: " ; 
+  for (std::set<std::string>::iterator it = documents.begin(); it != documents.end(); it++) {
+    os << *it << ", ";
+  }
+  os << "\n";
+}
+
+void
+GUSearchMessage::StoreReq::Serialize (Buffer::Iterator &start) const
+{
+  //Print(std::cout);
+  start.WriteU16 (key.length ());
+  start.Write ((uint8_t *) (const_cast<char*> (key.c_str())), key.length());
+  
+  start.WriteHtonU32(documents.size());
+  
+  for (std::set<std::string>::iterator it = documents.begin(); it != documents.end(); it++) {
+    start.WriteU16 ((*it).length());
+    start.Write ((uint8_t *) (const_cast<char*> ((*it).c_str())), (*it).length());
+  }
+}
+
+uint32_t
+GUSearchMessage::StoreReq::Deserialize (Buffer::Iterator &start)
+{  
+  uint16_t length = start.ReadU16 ();
+  char* str = (char*) malloc (length);
+  start.Read ((uint8_t*)str, length);
+  key = std::string (str, length);
+  free (str);
+  
+  uint32_t dlen = start.ReadNtohU32();
+  for (uint32_t i = 0; i < dlen; i++) {
+    uint16_t length = start.ReadU16 ();
+    char* str = (char*) malloc (length);
+    start.Read ((uint8_t*)str, length);
+    documents.insert(std::string (str, length));
+    free (str);
+  }
+  
+  //Print(std::cout);
+  
+  return StoreReq::GetSerializedSize ();
+}
+
+void
+GUSearchMessage::SetStoreReq (std::string key, std::set<std::string> documents)
+{
+  if (m_messageType == 0)
+    {
+      m_messageType = STORE_REQ;
+    }
+  else
+    {
+      NS_ASSERT (m_messageType == STORE_REQ);
+    }
+  m_message.storeReq.key = key;
+  m_message.storeReq.documents = documents;
+}
+
+GUSearchMessage::StoreReq
+GUSearchMessage::GetStoreReq ()
+{
+  return m_message.storeReq;
+}
+
+
+/* FETCH_REQ */
+uint32_t 
+GUSearchMessage::FetchReq::GetSerializedSize (void) const
+{
+  uint32_t size = 0;
+  size += sizeof(uint32_t);
+  size += sizeof(uint16_t) + key.length();
+  
+  size += sizeof(uint32_t);
+  for (std::set<std::string>::iterator it = searchKeys.begin(); it != searchKeys.end(); it++) {
+    size += sizeof(uint16_t);
+    size += (*it).length();
+  }
+  
+  size += sizeof(uint32_t);
+  for (std::set<std::string>::iterator it = documents.begin(); it != documents.end(); it++) {
+    size += sizeof(uint16_t);
+    size += (*it).length();
+  }
+  return size;
+}
+
+void
+GUSearchMessage::FetchReq::Print (std::ostream &os) const
+{
+  os << "FetchReq:: OriginatorNum: " << originatorNum << " Key: " << key << " Documents: " ; 
+  for (std::set<std::string>::iterator it = documents.begin(); it != documents.end(); it++) {
+    os << *it << ", ";
+  }
+  os << " Search Keys: ";
+  for (std::set<std::string>::iterator it = searchKeys.begin(); it != searchKeys.end(); it++) {
+    os << *it << ", ";
+  }
+  os << "\n";
+}
+
+void
+GUSearchMessage::FetchReq::Serialize (Buffer::Iterator &start) const
+{
+  start.WriteHtonU32(originatorNum);
+  
+  start.WriteU16 (key.length ());
+  start.Write ((uint8_t *) (const_cast<char*> (key.c_str())), key.length());
+  
+  start.WriteHtonU32(searchKeys.size());
+  
+  for (std::set<std::string>::iterator it = searchKeys.begin(); it != searchKeys.end(); it++) {
+    start.WriteU16 ((*it).length());
+    start.Write ((uint8_t *) (const_cast<char*> ((*it).c_str())), (*it).length());
+  }
+  
+  start.WriteHtonU32(documents.size());
+  
+  for (std::set<std::string>::iterator it = documents.begin(); it != documents.end(); it++) {
+    start.WriteU16 ((*it).length());
+    start.Write ((uint8_t *) (const_cast<char*> ((*it).c_str())), (*it).length());
+  }
+}
+
+uint32_t
+GUSearchMessage::FetchReq::Deserialize (Buffer::Iterator &start)
+{  
+  originatorNum = start.ReadNtohU32();
+  
+  uint16_t length = start.ReadU16 ();
+  char* str = (char*) malloc (length);
+  start.Read ((uint8_t*)str, length);
+  key = std::string (str, length);
+  free (str);
+  
+  uint32_t dlen = start.ReadNtohU32();
+  for (uint32_t i = 0; i < dlen; i++) {
+    uint16_t length = start.ReadU16 ();
+    char* str = (char*) malloc (length);
+    start.Read ((uint8_t*)str, length);
+    searchKeys.insert(std::string (str, length));
+    free (str);
+  }
+  
+  dlen = start.ReadNtohU32();
+  for (uint32_t i = 0; i < dlen; i++) {
+    uint16_t length = start.ReadU16 ();
+    char* str = (char*) malloc (length);
+    start.Read ((uint8_t*)str, length);
+    documents.insert(std::string (str, length));
+    free (str);
+  }
+  
+  return FetchReq::GetSerializedSize ();
+}
+
+void
+GUSearchMessage::SetFetchReq (uint32_t originatorNum, std::string key, std::set<std::string> searchKeys, std::set<std::string> documents)
+{
+  if (m_messageType == 0)
+    {
+      m_messageType = FETCH_REQ;
+    }
+  else
+    {
+      NS_ASSERT (m_messageType == FETCH_REQ);
+    }
+  m_message.fetchReq.originatorNum = originatorNum ;
+  m_message.fetchReq.key = key;
+  m_message.fetchReq.searchKeys = searchKeys;
+  m_message.fetchReq.documents = documents;
+}
+
+GUSearchMessage::FetchReq
+GUSearchMessage::GetFetchReq ()
+{
+  return m_message.fetchReq;
+}
+
+/* FETCH_RSP */
+uint32_t 
+GUSearchMessage::FetchRsp::GetSerializedSize (void) const
+{
+  uint32_t size = 0;
+  size += sizeof(uint32_t);
+  for (std::set<std::string>::iterator it = documents.begin(); it != documents.end(); it++) {
+    size += sizeof(uint16_t);
+    size += (*it).length();
+  }
+  return size;
+}
+
+void
+GUSearchMessage::FetchRsp::Print (std::ostream &os) const
+{
+  os << "FetchRsp:: Documents: " ; 
+  for (std::set<std::string>::iterator it = documents.begin(); it != documents.end(); it++) {
+    os << *it << ", ";
+  }
+  os << "\n";
+}
+
+void
+GUSearchMessage::FetchRsp::Serialize (Buffer::Iterator &start) const
+{ 
+  start.WriteHtonU32(documents.size());
+  
+  for (std::set<std::string>::iterator it = documents.begin(); it != documents.end(); it++) {
+    start.WriteU16 ((*it).length());
+    start.Write ((uint8_t *) (const_cast<char*> ((*it).c_str())), (*it).length());
+  }
+}
+
+uint32_t
+GUSearchMessage::FetchRsp::Deserialize (Buffer::Iterator &start)
+{  
+  uint32_t dlen = start.ReadNtohU32();
+  for (uint32_t  i = 0; i < dlen; i++) {
+    uint16_t length = start.ReadU16 ();
+    char* str = (char*) malloc (length);
+    start.Read ((uint8_t*)str, length);
+    documents.insert(std::string (str, length));
+    free (str);
+  }
+  
+  return FetchRsp::GetSerializedSize ();
+}
+
+void
+GUSearchMessage::SetFetchRsp (std::set<std::string> documents)
+{
+  if (m_messageType == 0)
+    {
+      m_messageType = FETCH_RSP;
+    }
+  else
+    {
+      NS_ASSERT (m_messageType == FETCH_RSP);
+    }
+  m_message.fetchRsp.documents = documents;
+}
+
+GUSearchMessage::FetchRsp
+GUSearchMessage::GetFetchRsp ()
+{
+  return m_message.fetchRsp;
 }
 
 

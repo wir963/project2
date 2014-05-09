@@ -158,9 +158,11 @@ GUChord::StopApplication (void)
 }
 
 void
-GUChord::SendLookupRequest(std::string target_key)
+GUChord::SendChordLookup(std::string target_key, uint32_t transId)
 {
-    uint32_t transactionId = GetNextTransactionId ();
+    //uint32_t transactionId = GetNextTransactionId ();
+    uint32_t transactionId = transId;
+    
 
     CHORD_LOG ("\nLookupIssue<CurrentNodeKey: " << my_node_key_hex << ", TargetKey: " << target_key << ">");
 
@@ -446,8 +448,8 @@ for(unsigned int i = 0; i < finger_table.size(); i++) {
         std::cout << " " << key << std::endl;
         std::cout << "\n**************************************************************************\n";
 
-
-        SendLookupRequest(key);
+        uint32_t transactionId = GetNextTransactionId ();
+        SendChordLookup(key, transactionId );
         
       }
 
@@ -1070,7 +1072,7 @@ GUChord::ProcessLookupReq (GUChordMessage message, Ipv4Address sourceAddress, ui
   // first check if you are the right key
   if(isSuccessor(predecessor_key_gmp, target_key_gmp, my_key_gmp))
   {
-std::cout<< "HI WELLES 1" <<std::endl;
+
     uint32_t transactionId = GetNextTransactionId ();
 
     Ptr<Packet> packet = Create<Packet> ();
@@ -1084,7 +1086,7 @@ std::cout<< "HI WELLES 1" <<std::endl;
 
   else if(isSuccessor(my_key_gmp, target_key_gmp, successor_key_gmp ))
   {
- std::cout<< "HI WELLES 2" <<std::endl;
+
     CHORD_LOG ("\nLookupRequest<CurrentNodeKey: " << my_node_key_hex << ">: NextHop<NextAddr: " << successor_ip_address << ", NextKey: " << successor_node_key_hex << ", TargetKey: " << message.GetLookupReq().target_key << ">");
 
     uint32_t transactionId = GetNextTransactionId ();
@@ -1099,7 +1101,7 @@ std::cout<< "HI WELLES 1" <<std::endl;
   }
   else
   {
-std::cout<< "HI WELLES 3" <<std::endl;
+
     mpz_t curr_finger_key_gmp;
     mpz_t prev_finger_key_gmp;
     //mpz_t finger_key_gmp;
@@ -1145,6 +1147,8 @@ GUChord::ProcessLookupRsp (GUChordMessage message, Ipv4Address sourceAddress, ui
 {
 
     CHORD_LOG ("\nLookupResult<CurrentNodeKey: " << ipHash(message.GetLookupRsp().successor_node_ip_address) << ", TargetKey: " << message.GetLookupRsp().target_key << ", OrignatorNode: " << message.GetLookupRsp().originator_node_id << ">");
+
+    m_chordLookup (message.GetLookupRsp().successor_node_ip_address, message.GetLookupRsp().successor_node_id, ipHash(message.GetLookupRsp().successor_node_ip_address), message.GetTransactionId());
 
 }
 
@@ -1201,6 +1205,24 @@ void
 GUChord::SetPingRecvCallback (Callback <void, Ipv4Address, std::string> pingRecvFn)
 {
   m_pingRecvFn = pingRecvFn;
+}
+
+void
+GUChord::SetChordLookupCallback (Callback <void, Ipv4Address, uint32_t, std::string, uint32_t> chordLookup)
+{
+   m_chordLookup = chordLookup;
+}
+
+void
+GUChord::SetChordLeaveCallback (Callback <void, Ipv4Address, uint32_t> chordLeave)
+{
+   m_chordLeave = chordLeave;
+}
+
+void
+GUChord::SetPredecessorChangeCallback (Callback <void, Ipv4Address, std::string> predChange)
+{
+   m_predChange= predChange;
 }
 
 

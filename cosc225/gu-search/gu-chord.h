@@ -78,13 +78,19 @@ class GUChord : public GUApplication
     void SetPingSuccessCallback (Callback <void, Ipv4Address, std::string> pingSuccessFn);
     void SetPingFailureCallback (Callback <void, Ipv4Address, std::string> pingFailureFn);
     void SetPingRecvCallback (Callback <void, Ipv4Address, std::string> pingRecvFn);
+    
+    void SetChordLookupCallback (Callback <void, Ipv4Address, uint32_t, std::string, uint32_t> chordLookup);
+
+    void SetChordLeaveCallback (Callback <void, Ipv4Address, uint32_t> chordLeave);
+
+    void SetPredecessorChangeCallback (Callback <void, Ipv4Address, std::string> predChange);
 
     // From GUApplication
     virtual void ProcessCommand (std::vector<std::string> tokens);
        
     void FingerInit(int);
 
-    void SendLookupRequest(std::string);
+    void SendChordLookup(std::string, uint32_t);
 
     bool isSuccessor(mpz_t, mpz_t, mpz_t);
     bool isInBetween(mpz_t, mpz_t, mpz_t);
@@ -100,6 +106,25 @@ class GUChord : public GUApplication
 
      };
     
+
+     // start of new Chord variables
+    uint32_t successor_id;
+    uint32_t predecessor_id;
+    Ipv4Address successor_ip_address;
+    Ipv4Address predecessor_ip_address;
+    std::string successor_node_key_hex;
+    std::string predecessor_node_key_hex;
+    
+    Timer stabilize_timer;
+    Time stabilize_timeout;
+
+    bool in_ring;
+    bool show_next_stabilize;
+    bool stabilization_messages;
+    int counter;
+
+    std::string my_node_key_hex;
+
   protected:
     virtual void DoDispose ();
     
@@ -121,9 +146,12 @@ class GUChord : public GUApplication
     Callback <void, Ipv4Address, std::string> m_pingSuccessFn;
     Callback <void, Ipv4Address, std::string> m_pingFailureFn;
     Callback <void, Ipv4Address, std::string> m_pingRecvFn;
+    Callback <void, Ipv4Address, uint32_t, std::string, uint32_t> m_chordLookup;
+    Callback <void, Ipv4Address, uint32_t> m_chordLeave;
+    Callback <void, Ipv4Address, std::string> m_predChange;
     
 
-    // start of new Chord variables
+    /*// start of new Chord variables
     uint32_t successor_id;
     uint32_t predecessor_id;
     Ipv4Address successor_ip_address;
@@ -139,7 +167,7 @@ class GUChord : public GUApplication
     bool stabilization_messages;
     int counter;
 
-    std::string my_node_key_hex;
+    std::string my_node_key_hex;*/
 
     //std::map<std::string, FingerInfo> finger_table;
     std::vector<FingerTableEntry> finger_table;

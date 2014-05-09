@@ -29,6 +29,8 @@
 #include <set>
 #include <vector>
 #include <string>
+#include <openssl/sha.h>
+#include <gmp.h>
 #include "ns3/socket.h"
 #include "ns3/nstime.h"
 #include "ns3/timer.h"
@@ -49,7 +51,16 @@ class GUSearch : public GUApplication
     void RecvMessage (Ptr<Socket> socket);
     void ProcessPingReq (GUSearchMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
     void ProcessPingRsp (GUSearchMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
+    void ProcessStoreReq (GUSearchMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
+    void ProcessFetchReq (GUSearchMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
+    void ProcessFetchRsp (GUSearchMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
+    
     void AuditPings ();
+
+    void CreateInvertedList(std::string filename);
+    void PublishList();
+    void SendSearchRequest(uint32_t , uint32_t , std::set<std::string>, std::set<std::string> );
+
     uint32_t GetNextTransactionId ();
    
 
@@ -57,7 +68,10 @@ class GUSearch : public GUApplication
     void HandleChordPingSuccess (Ipv4Address destAddress, std::string message);
     void HandleChordPingFailure (Ipv4Address destAddress, std::string message);
     void HandleChordPingRecv (Ipv4Address destAddress, std::string message);
-
+    void HandleChordLookupCallback(Ipv4Address destAddress, uint32_t, std::string, uint32_t);
+    void HandleChordLeaveRequest (Ipv4Address destAddress, uint32_t successorNodeNum);
+    void HandlePredecessorChangeCallback (Ipv4Address destAddress, std::string message);
+    
     // From GUApplication
     virtual void ProcessCommand (std::vector<std::string> tokens);
     // From GULog
@@ -68,6 +82,25 @@ class GUSearch : public GUApplication
     virtual void SetChordVerbose (bool on);
     virtual void SetSearchVerbose (bool on);
 
+    void PrintMyDocuments();
+     
+    std::map<std::string, std::set<std::string> > m_index;
+    
+    enum OperationType {
+      STORE, 
+      FETCH,
+      CHECK,
+    };
+    struct KeyLookupInformation {
+      std::string lookupKey;
+      std::string actualKey;
+      OperationType operationType;
+      GUSearchMessage::FetchReq fetchReq;
+    };
+    std::map<uint32_t, KeyLookupInformation> m_keyRequestTracker;
+
+    std::map<std::string, std::set<std::string> > m_documents;
+    
   protected:
     virtual void DoDispose ();
     
