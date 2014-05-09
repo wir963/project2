@@ -275,6 +275,10 @@ GUChord::ProcessCommand (std::vector<std::string> tokens)
                 predecessor_node_key_hex = my_node_key_hex;
                 
                 //FingerInit();
+              mpz_t mod_value;
+              mpz_init_set_ui(mod_value, 0);
+              mpz_ui_pow_ui(mod_value, 2, 160);
+              
               mpz_t add_value;
               mpz_init(add_value);
               mpz_ui_pow_ui(add_value, 2, 0);
